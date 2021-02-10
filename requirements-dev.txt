@@ -1,4 +1,0 @@
-ipython
-jedi<0.18
-jupyter
-jupyterlab

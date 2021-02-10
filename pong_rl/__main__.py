@@ -1,6 +1,6 @@
-from agents import PongAgentRandom, PongAgentTF
-from environments import PongEnvironment
-from timers import ContextTimer
+from pong_rl.agent import PongAgentRandom, PongAgentTF
+from pong_rl.environment import PongEnvironment
+from pong_rl.timer import ContextTimer
 
 
 def main():
