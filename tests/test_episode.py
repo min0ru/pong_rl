@@ -6,10 +6,12 @@ from pong_rl.agent import PongAgentRandom, PongAgentTF
 
 
 class AbstractAgentCase(abc.ABC):
+    """ ABC class for agents training. """
     ENV = None
     AGENT = None
 
     def setUp(self):
+        """ Initialize environment and agent. """
         self.env = self.ENV()
         self.agent = self.AGENT()
 
@@ -23,16 +25,23 @@ class AbstractAgentCase(abc.ABC):
         self.assertEqual(observations_num, actions_num)
         self.assertEqual(observations_num, rewards_num)
         self.assertGreater(observations_num, 0)
-
         self.assertNotEqual(score, 0)
+
+    def test_agent_train(self):
+        """ Test agent training with episode results. """
+        observations, actions, rewards, score = self.env.play_episode(self.agent)
+        self.agent.train(observations, actions, rewards)
+        self.assertGreater(self.agent.trainings, 0)
 
 
 class RandomAgentCase(AbstractAgentCase, unittest.TestCase):
+    """ Test random agent. """
     ENV = PongEnvironment
     AGENT = PongAgentRandom
 
 
 class TFAgentCase(AbstractAgentCase, unittest.TestCase):
+    """ Test Tensorflow agent. """
     ENV = PongEnvironment
     AGENT = PongAgentTF
 
