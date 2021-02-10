@@ -36,8 +36,10 @@ class BasePongAgent:
         """ Agent training (Reinforced Learning). """
         self.trainings += 1
         self.trained_observations += len(observations)
+
+        # TODO: optimize processed observations concatenation
         processed_observations = np.array([
-            self._process_observation(obs) for obs in observations
+            self._process_observation(obs)[0] for obs in observations
         ])
         self._train_impl(processed_observations, actions, rewards)
 
@@ -87,7 +89,7 @@ class PongAgentTF(BasePongAgent):
         ])
         self._model.compile(
             optimizer='adam',
-            loss='sparse_categorical_crossentropy',
+            loss='categorical_crossentropy',
             metrics=['accuracy']
         )
 
@@ -96,7 +98,13 @@ class PongAgentTF(BasePongAgent):
         return self._model(processed_observation)[0].numpy()
 
     def _train_impl(self, observations, actions, rewards):
-        """ Random Agent is unable to train. """
+        """ Training NN model with given observations. """
+        self._model.fit(
+            observations,
+            actions,
+            sample_weight=rewards,
+            verbose=0,
+        )
         return
 
     @property
