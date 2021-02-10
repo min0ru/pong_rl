@@ -36,7 +36,10 @@ class BasePongAgent:
         """ Agent training (Reinforced Learning). """
         self.trainings += 1
         self.trained_observations += len(observations)
-        self._train_impl(observations, actions, rewards)
+        processed_observations = np.array([
+            self._process_observation(obs) for obs in observations
+        ])
+        self._train_impl(processed_observations, actions, rewards)
 
     def _train_impl(self, observations, actions, rewards):
         """ Agent training implementation. Should be implemented in child class. """
