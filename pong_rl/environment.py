@@ -35,5 +35,11 @@ class PongEnvironment:
 
     def _process_episode_rewards(self, rewards, gamma=0.99):
         """ Smooth reward for specific environment. """
-        # TODO: gamma decay for Pong
-        return rewards
+        processed_rewards = np.zeros_like(rewards, dtype=np.float)
+        sliding_sum = 0
+        for i, reward in reversed(list(enumerate(rewards))):
+            if reward != 0:
+                sliding_sum = 0
+            sliding_sum = sliding_sum * gamma + reward
+            processed_rewards[i] = sliding_sum
+        return processed_rewards
