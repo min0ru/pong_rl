@@ -28,14 +28,16 @@ class PongEnvironment:
             action = self._choose_probable_action(actions_probability)
             observation, reward, episode_finished, info = self._env.step(action)
             rewards.append(reward)
-        return observations, actions, rewards
+        episode_reward = sum(rewards)
+        processed_rewards = self._process_episode_rewards(rewards)
+        return observations, actions, processed_rewards, episode_reward
 
     def _choose_probable_action(self, probability):
         return np.random.choice(self.ACTIONS, p=probability)
 
     def _process_episode_rewards(self, rewards, gamma=0.99):
         """ Smooth reward for specific environment. """
-        processed_rewards = np.zeros_like(rewards, dtype=np.float)
+        processed_rewards = np.zeros_like(rewards, dtype=np.float32)
         sliding_sum = 0
         for i, reward in reversed(list(enumerate(rewards))):
             if reward != 0:
