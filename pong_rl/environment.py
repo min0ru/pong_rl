@@ -1,17 +1,26 @@
+import enum
 import gym
 import numpy as np
 
 
+class PongAction(enum.Enum):
+    """ Pong Environment actions. """
+    NOP = 1
+    UP = 2
+    DOWN = 3
+
+
 class PongEnvironment:
+    """ Pong Environment Class. """
     ENV_NAME = 'Pong-v4'
 
-    # TODO: convert actions to ENUM
-    ACTION_NOP = 1
-    ACTION_UP = 2
-    ACTION_DOWN = 3
-    ACTIONS = [ACTION_UP, ACTION_DOWN]
+    ACTIONS = [
+        PongAction.UP.value,
+        PongAction.DOWN.value
+    ]
 
     def __init__(self):
+        """ Initialize Pong gym environment. """
         self._env = gym.make(self.ENV_NAME)
 
     def play_episode(self, agent, render=False):
@@ -35,6 +44,7 @@ class PongEnvironment:
         return observations, actions, processed_rewards, score
 
     def _choose_probable_action(self, probability):
+        """ Choose available action """
         return np.random.choice(self.ACTIONS, p=probability)
 
     def _process_episode_rewards(self, rewards, gamma=0.99):
