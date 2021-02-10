@@ -1,4 +1,6 @@
 import abc
+import copy
+import numpy as np
 import unittest
 
 from pong_rl.environment import PongEnvironment
@@ -47,18 +49,25 @@ class TFAgentCase(AbstractAgentCase, unittest.TestCase):
 
     def test_agent_train_model_weights_changed(self):
         """ Test that actual TF model weights are changing during agent training. """
-        weights_before_train = self.agent._model.trainable_weights.copy()
-
         # Check that weights does not change without training
-        self.assertEqual(weights_before_train, self.agent._model.trainable_weights)
+        weights_before_train = copy.deepcopy(self.agent._model.trainable_weights)
+        for w1, w2 in zip(weights_before_train, self.agent._model.trainable_weights):
+            self.assertTrue(
+                np.all(np.equal(w1, w2)),
+                'Saved weights changed before training!'
+            )
 
         # Play episode, train agent on episode observations
         observations, actions, rewards, score = self.env.play_episode(self.agent)
         self.agent.train(observations, actions, rewards)
 
         # Check that model weights was changed after training
-        weights_after_train = self.agent._model.trainable_weights.copy()
-        self.assertNotEqual(weights_before_train, weights_after_train)
+        weights_after_train = copy.deepcopy(self.agent._model.trainable_weights)
+        for w1, w2 in zip(weights_before_train, weights_after_train):
+            self.assertFalse(
+                np.all(np.equal(w1, w2)),
+                'Network weights did not changed after training!'
+            )
 
 
 if __name__ == '__main__':
