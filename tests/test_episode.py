@@ -45,6 +45,21 @@ class TFAgentCase(AbstractAgentCase, unittest.TestCase):
     ENV = PongEnvironment
     AGENT = PongAgentTF
 
+    def test_agent_train_model_weights_changed(self):
+        """ Test that actual TF model weights are changing during agent training. """
+        weights_before_train = self.agent._model.trainable_weights.copy()
+
+        # Check that weights does not change without training
+        self.assertEqual(weights_before_train, self.agent._model.trainable_weights)
+
+        # Play episode, train agent on episode observations
+        observations, actions, rewards, score = self.env.play_episode(self.agent)
+        self.agent.train(observations, actions, rewards)
+
+        # Check that model weights was changed after training
+        weights_after_train = self.agent._model.trainable_weights.copy()
+        self.assertNotEqual(weights_before_train, weights_after_train)
+
 
 if __name__ == '__main__':
     unittest.main()
