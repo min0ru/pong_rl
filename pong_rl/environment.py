@@ -28,9 +28,11 @@ class PongEnvironment:
             action = self._choose_probable_action(actions_probability)
             observation, reward, episode_finished, info = self._env.step(action)
             rewards.append(reward)
-        episode_reward = sum(rewards)
+        score = sum(rewards)
         processed_rewards = self._process_episode_rewards(rewards)
-        return observations, actions, processed_rewards, episode_reward
+        observations = np.array(observations)
+        actions = np.array(actions)
+        return observations, actions, processed_rewards, score
 
     def _choose_probable_action(self, probability):
         return np.random.choice(self.ACTIONS, p=probability)
