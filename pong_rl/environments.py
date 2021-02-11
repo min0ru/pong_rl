@@ -21,17 +21,26 @@ class PongEnvironment:
         while not episode_finished:
             if render:
                 self._env.render()
+            observation = self._process_observation(observation)
             observations.append(observation)
             actions_probability = agent.predict(observation)
             actions.append(actions_probability)
             action = self._choose_probable_action(actions_probability)
             observation, reward, episode_finished, info = self._env.step(action)
             rewards.append(reward)
-        score = sum(rewards)
-        processed_rewards = self._process_episode_rewards(rewards)
         observations = np.array(observations)
         actions = np.array(actions)
+        processed_rewards = self._process_episode_rewards(rewards)
+        score = sum(rewards)
         return observations, actions, processed_rewards, score
+
+    def _process_observation(self, observation):
+        """ Extract area of interest 160x160 with down sampling and converting to b/w colors. """
+        image = observation[34:194, :, :]   # Cut out the area of interest
+        image = image[::2, ::2, 1]  # Down sample to 80x80 and single channel
+        image[image < 100] = 0
+        image[image > 0] = 255
+        return image
 
     def _choose_probable_action(self, probability):
         """ Choose available action """

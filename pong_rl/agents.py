@@ -15,22 +15,12 @@ class BasePongAgent:
         self.trainings = 0
         self.trained_observations = 0
 
-    def _process_observation(self, observation):
-        """Extract area of interest 160x160 with down sampling and converting to b/w colors."""
-        image = observation[34:194, :, :]
-        image = image[::2, ::2, 1]
-        image[image < 100] = 0
-        image[image > 0] = 255
-        image_batch = image[np.newaxis]
-        return image_batch
-
     def predict(self, observation):
         """ Agent action prediction based on given observation. """
-        processed_observation = self._process_observation(observation)
-        prediction = self._predict_impl(processed_observation)
+        prediction = self._predict_impl(observation)
         return prediction
 
-    def _predict_impl(self, processed_observation):
+    def _predict_impl(self, observation):
         """ Agent action prediction. Should be implemented in child class. """
         raise NotImplementedError()
 
@@ -38,12 +28,7 @@ class BasePongAgent:
         """ Agent training (Reinforced Learning). """
         self.trainings += 1
         self.trained_observations += len(observations)
-
-        # TODO: optimize processed observations concatenation
-        processed_observations = np.array([
-            self._process_observation(obs)[0] for obs in observations
-        ])
-        return self._train_impl(processed_observations, actions, rewards, **kwargs)
+        return self._train_impl(observations, actions, rewards, **kwargs)
 
     def _train_impl(self, observations, actions, rewards, **kwargs):
         """ Agent training implementation. Should be implemented in child class. """
@@ -53,16 +38,12 @@ class BasePongAgent:
 class PongAgentRandom(BasePongAgent):
     """ Pong Agent that implements random acton choice. """
 
-    def _process_observation(self, observation):
-        """ Random agent does not need to see anything. """
-        return observation
-
     @staticmethod
     def _softmax(x):
         """ Helper function for random predictions to sum up to 1. """
         return np.exp(x) / sum(np.exp(x))
 
-    def _predict_impl(self, processed_observation):
+    def _predict_impl(self, observation):
         """ Prediction is made randomly. """
         return self._softmax(np.random.randn(self.ACTIONS_LEN))
 
@@ -95,9 +76,10 @@ class PongAgentTF(BasePongAgent):
             metrics=['accuracy']
         )
 
-    def _predict_impl(self, processed_observation):
+    def _predict_impl(self, observation):
         """ Agent prediction using TensorFlow NN model. """
-        return self._model(processed_observation)[0].numpy()
+        input_batch = observation[np.newaxis]
+        return self._model(input_batch)[0].numpy()
 
     def _train_impl(self, observations, actions, rewards, **kwargs):
         """ Training NN model with given observations. """
