@@ -2,8 +2,8 @@ import abc
 import numpy as np
 import unittest
 
-from pong_rl.environment import PongEnvironment
-from pong_rl.agent import PongAgentRandom, PongAgentTF
+from pong_rl.environments import PongEnvironment
+from pong_rl.agents import PongAgentRandom, PongAgentTF
 
 
 class AbstractAgentCase(abc.ABC):

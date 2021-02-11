@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from pong_rl.environment import PongEnvironment
+from pong_rl.environments import PongEnvironment
 
 
 class TestPongEnvironment(unittest.TestCase):
