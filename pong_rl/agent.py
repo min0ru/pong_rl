@@ -2,11 +2,13 @@ import numpy as np
 
 from tensorflow import keras
 
+from .actions import PongAction
+
 
 class BasePongAgent:
     """ Base Abstract class for trainable Pong Agent. """
-    INPUT_SHAPE = (80, 80)      # Processed input shape
-    ACTIONS_LEN = 2
+    INPUT_SHAPE = (80, 80)  # Processed input shape
+    ACTIONS_LEN = len(PongAction)
 
     def __init__(self):
         """ Agent initialization. """
@@ -94,7 +96,7 @@ class PongAgentTF(BasePongAgent):
         )
 
     def _predict_impl(self, processed_observation):
-        """ Agent prediction using TenforFlow NN model. """
+        """ Agent prediction using TensorFlow NN model. """
         return self._model(processed_observation)[0].numpy()
 
     def _train_impl(self, observations, actions, rewards):
