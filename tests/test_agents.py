@@ -31,7 +31,7 @@ class AbstractAgentCase(abc.ABC):
     def test_agent_train(self):
         """ Test agent training with episode results. """
         observations, actions, rewards, score = self.env.play_episode(self.agent)
-        self.agent.train(observations, actions, rewards)
+        self.agent.train(observations, actions, rewards, verbose=False)
         self.assertGreater(self.agent.trainings, 0)
 
 
@@ -67,7 +67,7 @@ class TFAgentCase(AbstractAgentCase, unittest.TestCase):
 
         # # Play episode, train agent on episode observations
         observations, actions, rewards, score = self.env.play_episode(self.agent)
-        self.agent.train(observations, actions, rewards)
+        self.agent.train(observations, actions, rewards, verbose=False)
 
         weights_after_train = model.get_weights()
         self.assertFalse(
