@@ -88,8 +88,8 @@ class PongAgentTF(BasePongAgent):
             keras.layers.Dense(self.ACTIONS_LEN, activation='softmax')
         ])
         self._model.compile(
-            optimizer='adam',
-            loss='categorical_crossentropy',
+            optimizer=keras.optimizers.SGD(learning_rate=1e-6),
+            loss=keras.losses.CategoricalCrossentropy(),
             metrics=['accuracy']
         )
 
@@ -103,7 +103,7 @@ class PongAgentTF(BasePongAgent):
             observations,
             actions,
             sample_weight=rewards,
-            verbose=0,
+            verbose=1,
         )
         return
 
