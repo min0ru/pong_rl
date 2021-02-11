@@ -1,3 +1,4 @@
+import abc
 import numpy as np
 
 from tensorflow import keras
@@ -5,7 +6,7 @@ from tensorflow import keras
 from .actions import PongAction
 
 
-class BasePongAgent:
+class BasePongAgent(abc.ABC):
     """ Base Abstract class for trainable Pong Agent. """
     INPUT_SHAPE = (80, 80)  # Processed input shape
     ACTIONS_LEN = len(PongAction)
