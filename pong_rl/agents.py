@@ -34,7 +34,7 @@ class BasePongAgent:
         """ Agent action prediction. Should be implemented in child class. """
         raise NotImplementedError()
 
-    def train(self, observations, actions, rewards):
+    def train(self, observations, actions, rewards, **kwargs):
         """ Agent training (Reinforced Learning). """
         self.trainings += 1
         self.trained_observations += len(observations)
@@ -43,9 +43,9 @@ class BasePongAgent:
         processed_observations = np.array([
             self._process_observation(obs)[0] for obs in observations
         ])
-        self._train_impl(processed_observations, actions, rewards)
+        return self._train_impl(processed_observations, actions, rewards, **kwargs)
 
-    def _train_impl(self, observations, actions, rewards):
+    def _train_impl(self, observations, actions, rewards, **kwargs):
         """ Agent training implementation. Should be implemented in child class. """
         raise NotImplementedError()
 
@@ -66,9 +66,9 @@ class PongAgentRandom(BasePongAgent):
         """ Prediction is made randomly. """
         return self._softmax(np.random.randn(self.ACTIONS_LEN))
 
-    def _train_impl(self, observations, actions, rewards):
+    def _train_impl(self, observations, actions, rewards, **kwargs):
         """ Random Agent is unable to train. """
-        return
+        return None
 
     @property
     def summary(self):
@@ -99,15 +99,14 @@ class PongAgentTF(BasePongAgent):
         """ Agent prediction using TensorFlow NN model. """
         return self._model(processed_observation)[0].numpy()
 
-    def _train_impl(self, observations, actions, rewards):
+    def _train_impl(self, observations, actions, rewards, **kwargs):
         """ Training NN model with given observations. """
-        self._model.fit(
+        return self._model.fit(
             observations,
             actions,
             sample_weight=rewards,
-            verbose=1,
+            **kwargs
         )
-        return
 
     @property
     def summary(self):
