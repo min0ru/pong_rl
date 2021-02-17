@@ -21,9 +21,10 @@ class BasePongAgent(abc.ABC):
         prediction = self._predict_impl(observation)
         return prediction
 
+    @abc.abstractmethod
     def _predict_impl(self, observation):
         """ Agent action prediction. Should be implemented in child class. """
-        raise NotImplementedError()
+        pass
 
     def train(self, observations, actions, rewards, **kwargs):
         """ Agent training (Reinforced Learning). """
@@ -31,9 +32,10 @@ class BasePongAgent(abc.ABC):
         self.trained_observations += len(observations)
         return self._train_impl(observations, actions, rewards, **kwargs)
 
+    @abc.abstractmethod
     def _train_impl(self, observations, actions, rewards, **kwargs):
         """ Agent training implementation. Should be implemented in child class. """
-        raise NotImplementedError()
+        pass
 
 
 class PongAgentRandom(BasePongAgent):

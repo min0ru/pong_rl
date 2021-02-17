@@ -35,9 +35,10 @@ class BasePongEnvironment(abc.ABC):
             processed_rewards[i] = sliding_sum
         return processed_rewards
 
+    @abc.abstractmethod
     def play_episode(self, agent, render=False):
         """ Play episode using agent and return observations, actions, rewards. """
-        raise NotImplementedError()
+        pass
 
 
 class PongEnvironment(BasePongEnvironment):
