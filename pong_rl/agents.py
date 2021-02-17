@@ -1,6 +1,7 @@
 import abc
 import numpy as np
 
+from scipy.special import softmax
 from tensorflow import keras
 
 from .actions import PongAction
@@ -16,13 +17,13 @@ class BasePongAgent(abc.ABC):
         self.trainings = 0
         self.trained_observations = 0
 
-    def predict(self, observation):
-        """ Agent action prediction based on given observation. """
-        prediction = self._predict_impl(observation)
-        return prediction
+    def predict(self, observations):
+        """ Agent actions prediction based on given observations. """
+        predictions = self._predict_impl(observations)
+        return predictions
 
     @abc.abstractmethod
-    def _predict_impl(self, observation):
+    def _predict_impl(self, observations):
         """ Agent action prediction. Should be implemented in child class. """
         pass
 
@@ -41,14 +42,10 @@ class BasePongAgent(abc.ABC):
 class PongAgentRandom(BasePongAgent):
     """ Pong Agent that implements random acton choice. """
 
-    @staticmethod
-    def _softmax(x):
-        """ Helper function for random predictions to sum up to 1. """
-        return np.exp(x) / sum(np.exp(x))
-
-    def _predict_impl(self, observation):
-        """ Prediction is made randomly. """
-        return self._softmax(np.random.randn(self.ACTIONS_LEN))
+    def _predict_impl(self, observations):
+        """ Predictions is made randomly. """
+        observations_num = len(observations)
+        return softmax(np.random.randn(observations_num, self.ACTIONS_LEN), axis=1)
 
     def _train_impl(self, observations, actions, rewards, **kwargs):
         """ Random Agent is unable to train. """
@@ -79,10 +76,9 @@ class PongAgentTF(BasePongAgent):
             metrics=['accuracy']
         )
 
-    def _predict_impl(self, observation):
+    def _predict_impl(self, observations):
         """ Agent prediction using TensorFlow NN model. """
-        input_batch = observation[np.newaxis]
-        return self._model(input_batch)[0].numpy()
+        return self._model(observations).numpy()
 
     def _train_impl(self, observations, actions, rewards, **kwargs):
         """ Training NN model with given observations. """

@@ -27,6 +27,7 @@ setup(
         'gym[atari]',
         'tensorflow==2.4.1',
         'numpy==1.19.2',
+        'scipy==1.6.0'
     ],
 
     extras_require={

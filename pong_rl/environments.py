@@ -12,17 +12,17 @@ class BasePongEnvironment(abc.ABC):
     def __init__(self):
         self.action_values = [action.value for action in PongAction]
 
-    def _process_observation(self, observation):
+    def _process_observations(self, observations):
         """ Extract area of interest 160x160 with down sampling and converting to b/w colors. """
-        image = observation[34:194, :, :]  # Cut out the area of interest
-        image = image[::2, ::2, 1]  # Down sample to 80x80 and single channel
-        image[image < 100] = 0
-        image[image > 0] = 255
-        return image
+        images = observations[:, 34:194, :, :]  # Cut out the area of interest
+        images = images[:, ::2, ::2, 1]  # Down sample to 80x80 and single channel
+        images[images < 100] = 0
+        images[images > 0] = 255
+        return images
 
-    def _choose_probable_action(self, probability):
+    def _choose_probable_actions(self, probabilitys):
         """ Choose available action """
-        return np.random.choice(self.action_values, p=probability)
+        return [np.random.choice(self.action_values, p=p) for p in probabilitys]
 
     def _process_episode_rewards(self, rewards, gamma=0.99):
         """ Smooth reward for specific environment. """
@@ -52,20 +52,22 @@ class PongEnvironment(BasePongEnvironment):
     def play_episode(self, agent, render=False):
         """ Play episode using agent and return observations, actions, rewards. """
         episode_finished = False
-        observations, actions, rewards = [], [], []
+        output_observations, actions, rewards = [], [], []
         observation = self._env.reset()
+        observations = observation[np.newaxis]
         while not episode_finished:
             if render:
                 self._env.render()
-            observation = self._process_observation(observation)
-            observations.append(observation)
-            actions_probability = agent.predict(observation)
-            actions.append(actions_probability)
-            action = self._choose_probable_action(actions_probability)
+            observations = self._process_observations(observations)
+            output_observations.append(observations[0])
+            action_probabilities = agent.predict(observations)
+            actions.append(action_probabilities[0])
+            action = self._choose_probable_actions(action_probabilities)
             observation, reward, episode_finished, info = self._env.step(action)
+            observations = observation[np.newaxis]
             rewards.append(reward)
-        observations = np.array(observations)
+        output_observations = np.array(output_observations)
         actions = np.array(actions)
         processed_rewards = self._process_episode_rewards(rewards)
         score = sum(rewards)
-        return observations, actions, processed_rewards, score
+        return output_observations, actions, processed_rewards, score
