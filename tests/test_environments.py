@@ -1,3 +1,4 @@
+import abc
 import unittest
 
 import numpy as np
@@ -5,11 +6,13 @@ import numpy as np
 from pong_rl.environments import PongEnvironment
 
 
-class TestPongEnvironment(unittest.TestCase):
+class AbstractPongEnvironmentCase(abc.ABC):
     def setUp(self) -> None:
-        self.env = PongEnvironment()
+        """ Initialize Environment. """
+        self.env = self.ENV()
 
     def test_process_episode_rewards(self):
+        """ Test episode rewards smoothing method for Pong. """
         gamma = 0.99
         testing_rewards = [
             (
@@ -40,6 +43,9 @@ class TestPongEnvironment(unittest.TestCase):
             processed_rewards = self.env._process_episode_rewards(rewards, gamma)
             np.testing.assert_array_almost_equal(processed_rewards, target_rewards)
 
+
+class PongEnvironmentCase(AbstractPongEnvironmentCase, unittest.TestCase):
+    ENV = PongEnvironment
 
 
 if __name__ == '__main__':
