@@ -20,11 +20,12 @@ class BasePongEnvironment(abc.ABC):
         images[images > 0] = 255
         return images
 
-    def _choose_probable_actions(self, probabilitys):
+    def _choose_probable_actions(self, probabilities):
         """ Choose available action """
-        return [np.random.choice(self.action_values, p=p) for p in probabilitys]
+        return [np.random.choice(self.action_values, p=p) for p in probabilities]
 
-    def _process_episode_rewards(self, rewards, gamma=0.99):
+    @staticmethod
+    def _process_episode_rewards(rewards, gamma=0.99):
         """ Smooth reward for specific environment. """
         processed_rewards = np.zeros_like(rewards, dtype=np.float32)
         sliding_sum = 0
@@ -49,22 +50,28 @@ class PongEnvironment(BasePongEnvironment):
         super().__init__()
         self._env = gym.make(self.ENV_NAME)
 
+    @staticmethod
+    def _expand_observations(observations):
+        """ Convert observation to the array of observations if needed. """
+        if len(observations.shape) < 4:
+            observations = observations[np.newaxis]
+        return observations
+
     def play_episode(self, agent, render=False):
         """ Play episode using agent and return observations, actions, rewards. """
         episode_finished = False
         output_observations, actions, rewards = [], [], []
         observation = self._env.reset()
-        observations = observation[np.newaxis]
         while not episode_finished:
             if render:
                 self._env.render()
+            observations = self._expand_observations(observation)
             observations = self._process_observations(observations)
             output_observations.append(observations[0])
             action_probabilities = agent.predict(observations)
             actions.append(action_probabilities[0])
             action = self._choose_probable_actions(action_probabilities)
             observation, reward, episode_finished, info = self._env.step(action)
-            observations = observation[np.newaxis]
             rewards.append(reward)
         output_observations = np.array(output_observations)
         actions = np.array(actions)
