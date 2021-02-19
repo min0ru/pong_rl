@@ -3,13 +3,27 @@ import unittest
 
 import numpy as np
 
+from pong_rl.agents import PongAgentRandom
 from pong_rl.environments import PongEnvironment
 
 
+class MockPongAgent(PongAgentRandom):
+    """ Mock Pong Agent that implements random acton choice. """
+
+    @property
+    def summary(self):
+        """ Agent description. """
+        return 'RandomPongAgent as Mock Agent'
+
+
 class AbstractPongEnvironmentCase(abc.ABC):
+    ENV = None
+    AGENT = None
+
     def setUp(self) -> None:
         """ Initialize Environment. """
         self.env = self.ENV()
+        self.agent = self.AGENT()
 
     def test_process_episode_rewards(self):
         """ Test episode rewards smoothing method for Pong. """
@@ -44,8 +58,22 @@ class AbstractPongEnvironmentCase(abc.ABC):
             np.testing.assert_array_almost_equal(processed_rewards, target_rewards)
 
 
+    def test_environment_output(self):
+        """ Play one episode with RandomAgent and test that env output is not empty. """
+        observations, actions, rewards, score = self.env.play_episode(self.agent)
+        observations_num = len(observations)
+        actions_num = len(actions)
+        rewards_num = len(rewards)
+
+        self.assertEqual(observations_num, actions_num)
+        self.assertEqual(observations_num, rewards_num)
+        self.assertGreater(observations_num, 0)
+        self.assertNotEqual(score, 0)
+
+
 class PongEnvironmentCase(AbstractPongEnvironmentCase, unittest.TestCase):
     ENV = PongEnvironment
+    AGENT = MockPongAgent
 
 
 if __name__ == '__main__':
