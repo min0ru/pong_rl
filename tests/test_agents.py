@@ -2,8 +2,22 @@ import abc
 import numpy as np
 import unittest
 
-from pong_rl.environments import PongEnvironment
+from pong_rl.environments import BasePongEnvironment
 from pong_rl.agents import PongAgentRandom, PongAgentTF
+
+
+class MockPongEnvironment(BasePongEnvironment):
+    MIN_FRAMES = 1000
+    MAX_FRAMES = 1500
+
+    def play_episode(self, agent, render=False):
+        num_frames = np.random.randint(self.MIN_FRAMES, self.MAX_FRAMES)
+        observation_size = (num_frames, ) + self.OBSERVATION_SHAPE
+        observations = np.random.randint(255, size=observation_size)
+        actions = agent.predict(observations)
+        rewards = np.random.randn(num_frames) / 4.0
+        score = np.sum(rewards)
+        return observations, actions, rewards, score
 
 
 class AbstractAgentCase(abc.ABC):
@@ -37,13 +51,13 @@ class AbstractAgentCase(abc.ABC):
 
 class RandomAgentCase(AbstractAgentCase, unittest.TestCase):
     """ Test random agent. """
-    ENV = PongEnvironment
+    ENV = MockPongEnvironment
     AGENT = PongAgentRandom
 
 
 class TFAgentCase(AbstractAgentCase, unittest.TestCase):
     """ Test Tensorflow agent. """
-    ENV = PongEnvironment
+    ENV = MockPongEnvironment
     AGENT = PongAgentTF
 
     @staticmethod

@@ -8,6 +8,7 @@ from .actions import PongAction
 class BasePongEnvironment(abc.ABC):
     """ Base Class for Pong Environments. """
     ENV_NAME = 'Pong-v4'
+    OBSERVATION_SHAPE = (80, 80)
 
     def __init__(self):
         self.action_values = [action.value for action in PongAction]
@@ -38,7 +39,7 @@ class BasePongEnvironment(abc.ABC):
 
     @abc.abstractmethod
     def play_episode(self, agent, render=False):
-        """ Play episode using agent and return observations, actions, rewards. """
+        """ Play episode using agent and return observations, actions, rewards, total score. """
         pass
 
 
