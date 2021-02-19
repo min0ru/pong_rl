@@ -4,7 +4,7 @@ import unittest
 import numpy as np
 
 from pong_rl.agents import PongAgentRandom
-from pong_rl.environments import PongEnvironment
+from pong_rl.environments import PongEnvironment, VectorizedPongEnvironment
 
 
 class MockPongAgent(PongAgentRandom):
@@ -73,6 +73,11 @@ class AbstractPongEnvironmentCase(abc.ABC):
 
 class PongEnvironmentCase(AbstractPongEnvironmentCase, unittest.TestCase):
     ENV = PongEnvironment
+    AGENT = MockPongAgent
+
+
+class VectorizedPongEnvironmentCase(AbstractPongEnvironmentCase, unittest.TestCase):
+    ENV = VectorizedPongEnvironment
     AGENT = MockPongAgent
 
 
