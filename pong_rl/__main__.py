@@ -1,5 +1,5 @@
-from pong_rl.agent import PongAgentRandom, PongAgentTF
-from pong_rl.environment import PongEnvironment
+from pong_rl.agents import PongAgentTF
+from pong_rl.environments import PongEnvironment
 from pong_rl.timer import ContextTimer
 
 import numpy as np
@@ -17,8 +17,8 @@ def main():
     print(agent_tf.summary)
     with ContextTimer('Total Time (PongAgentTF) WARMUP!'):
         observations, actions, rewards = np.array([]), np.array([]), np.array([])
-        episode_num = 64
-        for episode in range(episode_num):
+        warmup_episode_num = 64
+        for episode in range(warmup_episode_num):
             with ContextTimer(f'Episode {episode}'):
                 ep_observations, ep_actions, ep_rewards, ep_score = \
                     pong.play_episode(agent_tf, render=False)
@@ -36,15 +36,16 @@ def main():
                     rewards = ep_rewards
 
         print('')
-        print(f'Total observations length {len(observations)} after {episode_num} episodes')
+        print(f'Total observations length {len(observations)} after {episode} episodes')
         print(f'Observation shape: {observations.shape} size: {size_mb(observations)} MB')
         print(f'Actions shape: {actions.shape} size: {size_mb(actions)} MB')
         print(f'Rewards shape: {rewards.shape} size: {size_mb(rewards)} MB')
 
     print('Warmup finished! Training!')
-    agent_tf.train(observations, actions, rewards)
+    agent_tf.train(observations, actions, rewards, verbose=True)
 
-    for episode in range(256):
+    should_train = True
+    while should_train:
         ep_observations, ep_actions, ep_rewards, ep_score = \
             pong.play_episode(agent_tf, render=True)
 
@@ -55,6 +56,7 @@ def main():
         # print('Rewards:\n', ep_rewards)
 
         agent_tf.train(ep_observations, ep_actions, ep_rewards)
+        episode += 1
 
 
 if __name__ == '__main__':
