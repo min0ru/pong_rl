@@ -44,7 +44,7 @@ class BasePongEnvironment(abc.ABC):
 
 
 class PongEnvironment(BasePongEnvironment):
-    """ Pong Environment Class. """
+    """ Pong Environment Class. Single Threaded. """
 
     def __init__(self):
         """ Initialize Pong gym environment. """
@@ -62,17 +62,22 @@ class PongEnvironment(BasePongEnvironment):
         """ Play episode using agent and return observations, actions, rewards. """
         episode_finished = False
         output_observations, actions, rewards = [], [], []
+
         observation = self._env.reset()
         while not episode_finished:
             if render:
                 self._env.render()
+
             observations = self._expand_observations(observation)
             observations = self._process_observations(observations)
+
             output_observations.append(observations[0])
             action_probabilities = agent.predict(observations)
             actions.append(action_probabilities[0])
             action = self._choose_probable_actions(action_probabilities)
+
             observation, reward, episode_finished, info = self._env.step(action)
+
             rewards.append(reward)
         output_observations = np.array(output_observations)
         actions = np.array(actions)
@@ -82,7 +87,7 @@ class PongEnvironment(BasePongEnvironment):
 
 
 class VectorizedPongEnvironment(BasePongEnvironment):
-    """ Pong Environment Class. """
+    """ Pong Environment Class. Vectorized (parallel environments). """
 
     def __init__(self, num_environments=4):
         """ Initialize Pong gym environment. """
@@ -92,18 +97,24 @@ class VectorizedPongEnvironment(BasePongEnvironment):
 
     def play_episode(self, agent, render=False):
         """ Play episode using agent and return observations, actions, rewards. """
-        episode_finished = False
-        environments_finished_episode = 0
+        environments_finished_episodes = 0
         output_observations, actions, rewards = [], [], []
+
         observations = self._env.reset()
-        while environments_finished_episode < self.parallel_environments:
+        while environments_finished_episodes < self.parallel_environments:
+            if render:
+                self._env.render()
+
             observations = self._process_observations(observations)
             output_observations.extend(observations)
+
             action_probabilities = agent.predict(observations)
             actions.extend(action_probabilities)
             action = self._choose_probable_actions(action_probabilities)
+
             observations, reward, episodes_finished, infos = self._env.step(action)
-            environments_finished_episode += np.sum(episodes_finished)
+
+            environments_finished_episodes += np.sum(episodes_finished)
             rewards.extend(reward)
         output_observations = np.array(output_observations)
         actions = np.array(actions)
