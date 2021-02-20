@@ -79,3 +79,34 @@ class PongEnvironment(BasePongEnvironment):
         processed_rewards = self._process_episode_rewards(rewards)
         score = sum(rewards)
         return output_observations, actions, processed_rewards, score
+
+
+class VectorizedPongEnvironment(BasePongEnvironment):
+    """ Pong Environment Class. """
+
+    def __init__(self, num_environments=4):
+        """ Initialize Pong gym environment. """
+        super().__init__()
+        self.parallel_environments = num_environments
+        self._env = gym.vector.make(self.ENV_NAME, num_environments)
+
+    def play_episode(self, agent, render=False):
+        """ Play episode using agent and return observations, actions, rewards. """
+        episode_finished = False
+        environments_finished_episode = 0
+        output_observations, actions, rewards = [], [], []
+        observations = self._env.reset()
+        while environments_finished_episode < self.parallel_environments:
+            observations = self._process_observations(observations)
+            output_observations.extend(observations)
+            action_probabilities = agent.predict(observations)
+            actions.extend(action_probabilities)
+            action = self._choose_probable_actions(action_probabilities)
+            observations, reward, episodes_finished, infos = self._env.step(action)
+            environments_finished_episode += np.sum(episodes_finished)
+            rewards.extend(reward)
+        output_observations = np.array(output_observations)
+        actions = np.array(actions)
+        processed_rewards = self._process_episode_rewards(rewards)
+        score = sum(rewards)
+        return output_observations, actions, processed_rewards, score
