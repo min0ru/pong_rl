@@ -1,7 +1,44 @@
+from itertools import groupby
 import numpy as np
 import unittest
 
-from pong_rl.storages import EpisodeStorage
+from pong_rl.storages import MultiList, EpisodeStorage
+
+
+class MultiListCase(unittest.TestCase):
+    def test_sublists_num_less_than_one(self):
+        """ MultiList should be initialized with correct number of sublists. """
+        self.assertRaises(TypeError, MultiList, -1)
+
+    def test_sublist_len(self):
+        """ MultiList should return number of sublists as it's length. """
+        num_sublists = 10
+        mlist = MultiList(num_sublists)
+        self.assertEqual(len(mlist), num_sublists)
+
+    def test_append_and_flat(self):
+        num_sublists = 10
+        mlist = MultiList(num_sublists)
+
+        # Fill MultiList with lists like [0, 1, 2, 3, 4, 5]
+        # So all resulting sublist will contain identical numbers [[0, 0, 0], [1, 1, 1] ...]]
+        num_iterations = 10
+        for _ in range(num_iterations):
+            sublist = list(range(len(mlist)))
+            mlist.append(sublist)
+
+        # Output should be flat list which consists of stacked elements of all sublists.
+        flat_list = mlist.flat()
+
+        # Check that total number of elements in MultiList correspond with inserted.
+        total_element_length = sum(len(sublist) for sublist in mlist)
+        self.assertEqual(total_element_length, num_sublists * num_iterations)
+        self.assertEqual(len(flat_list), num_sublists * num_iterations)
+
+        # Check that flat list outputs inserted numbers in the right sequence.
+        for (key, group), number in zip(groupby(flat_list), range(num_sublists)):
+            self.assertEqual(key, number)
+            self.assertEqual(len(list(group)), num_sublists)
 
 
 class EpisodeStorageCase(unittest.TestCase):
