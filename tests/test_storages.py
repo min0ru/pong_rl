@@ -45,11 +45,9 @@ class EpisodeStorageCase(unittest.TestCase):
     def test_multiple_environments(self):
         """ Test vectorized storage with multiple environment inputs with random sample data. """
         for num_environments in [1, 2, 3, 16]:
-            storage = EpisodeStorage(num_environments=num_environments)
+            storage = EpisodeStorage(num_environments)
             num_frames = 10
             total_frames = num_frames * num_environments
-
-            observations_list = [list() for _ in range(num_environments)]
 
             for _ in range(num_frames):
                 observations = np.random.randint(256, size=(num_environments, 80, 80))
@@ -58,8 +56,6 @@ class EpisodeStorageCase(unittest.TestCase):
                 infos = [{'empty': True}] * num_environments
 
                 storage.add(observations, rewards, dones, infos)
-                observations_list.append(observations[0])
-
             # Retrieve episodes data from storage
             observations, rewards, dones, infos = storage.get()
 
@@ -69,23 +65,22 @@ class EpisodeStorageCase(unittest.TestCase):
             self.assertEqual(len(dones), total_frames)
             self.assertEqual(len(infos), total_frames)
 
-            # Check that storage output observations is exactly the same as plain list
-            total_observations = sum([len(obs) for obs in observations])
-            self.assertEqual(len(observations), total_observations)
+    def test_storage_order(self):
+        """ Check that storage returns observations and other elements in right order. """
+        storage = EpisodeStorage(3)
 
-            # Check that first num_frames observations is from the first environment output
-            first_environment_observations = observations_list[0]
-            np.testing.assert_array_equal(
-                first_environment_observations,
-                observations[:len(first_environment_observations)]
-            )
+        # Insert data from 3 fake environments
+        storage.add([1, 2, 3], [5, 6, 7], [8, 9, 10], [11, 12, 13])
+        storage.add([1, 2, 3], [5, 6, 7], [8, 9, 10], [11, 12, 13])
+        storage.add([1, 2, 3], [5, 6, 7], [8, 9, 10], [11, 12, 13])
 
-            # Check that last num_frames observations is from the last environment output
-            last_environment_observations = observations_list[-1]
-            np.testing.assert_array_equal(
-                last_environment_observations,
-                observations[-len(last_environment_observations):]
-            )
+        observations, rewards, dones, infos = storage.get()
+
+        # Check that environment data is stacked in sequential way and right order.
+        self.assertListEqual(observations, [1, 1, 1, 2, 2, 2, 3, 3, 3])
+        self.assertListEqual(rewards, [5, 5, 5, 6, 6, 6, 7, 7, 7])
+        self.assertListEqual(dones, [8, 8, 8, 9, 9, 9, 10, 10, 10])
+        self.assertListEqual(infos, [11, 11, 11, 12, 12, 12, 13, 13, 13])
 
 
 if __name__ == '__main__':
