@@ -51,18 +51,18 @@ class EpisodeStorageCase(unittest.TestCase):
 
             for _ in range(num_frames):
                 observations = np.random.randint(256, size=(num_environments, 80, 80))
+                actions = np.random.randn(num_environments, 3)
                 rewards = np.random.randn(num_environments)
-                dones = [False] * num_environments
                 infos = [{'empty': True}] * num_environments
 
-                storage.add(observations, rewards, dones, infos)
+                storage.add(observations, actions, rewards, infos)
             # Retrieve episodes data from storage
-            observations, rewards, dones, infos = storage.get()
+            observations, actions, rewards, infos = storage.get()
 
             # Check that storage returns all inserted data
             self.assertEqual(len(observations), total_frames)
+            self.assertEqual(len(actions), total_frames)
             self.assertEqual(len(rewards), total_frames)
-            self.assertEqual(len(dones), total_frames)
             self.assertEqual(len(infos), total_frames)
 
     def test_storage_order(self):
@@ -74,12 +74,12 @@ class EpisodeStorageCase(unittest.TestCase):
         storage.add([1, 2, 3], [5, 6, 7], [8, 9, 10], [11, 12, 13])
         storage.add([1, 2, 3], [5, 6, 7], [8, 9, 10], [11, 12, 13])
 
-        observations, rewards, dones, infos = storage.get()
+        observations, actions, rewards, infos = storage.get()
 
         # Check that environment data is stacked in sequential way and right order.
         self.assertListEqual(observations, [1, 1, 1, 2, 2, 2, 3, 3, 3])
+        self.assertListEqual(actions, [5, 5, 5, 6, 6, 6, 7, 7, 7])
         self.assertListEqual(rewards, [5, 5, 5, 6, 6, 6, 7, 7, 7])
-        self.assertListEqual(dones, [8, 8, 8, 9, 9, 9, 10, 10, 10])
         self.assertListEqual(infos, [11, 11, 11, 12, 12, 12, 13, 13, 13])
 
 
