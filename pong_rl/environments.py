@@ -3,6 +3,7 @@ import gym
 import numpy as np
 
 from .actions import PongAction
+from .storages import EpisodeStorage
 
 
 class BasePongEnvironment(abc.ABC):
@@ -92,32 +93,31 @@ class VectorizedPongEnvironment(BasePongEnvironment):
     def __init__(self, num_environments=4):
         """ Initialize Pong gym environment. """
         super().__init__()
-        self.parallel_environments = num_environments
+        self.num_environments = num_environments
         self._env = gym.vector.make(self.ENV_NAME, num_environments)
 
     def play_episode(self, agent, render=False):
         """ Play episode using agent and return observations, actions, rewards. """
+        results = EpisodeStorage(self.num_environments)
         environments_finished_episodes = 0
-        output_observations, actions, rewards = [], [], []
 
         observations = self._env.reset()
-        while environments_finished_episodes < self.parallel_environments:
+        while environments_finished_episodes < self.num_environments:
             if render:
                 self._env.render()
 
-            observations = self._process_observations(observations)
-            output_observations.extend(observations)
+            processed_observations = self._process_observations(observations)
 
+            # Predict actions using agent
             action_probabilities = agent.predict(observations)
-            actions.extend(action_probabilities)
             action = self._choose_probable_actions(action_probabilities)
 
-            observations, reward, episodes_finished, infos = self._env.step(action)
-
+            # Make a step and save results to vectorized storage
+            observations, rewards, episodes_finished, infos = self._env.step(action)
+            results.add(processed_observations, action_probabilities, rewards, infos)
             environments_finished_episodes += np.sum(episodes_finished)
-            rewards.extend(reward)
-        output_observations = np.array(output_observations)
-        actions = np.array(actions)
-        processed_rewards = self._process_episode_rewards(rewards)
-        score = sum(rewards)
-        return output_observations, actions, processed_rewards, score
+
+        observations, actions, rewards, infos = results.get()
+        rewards = self._process_episode_rewards(rewards)
+
+        return observations, actions, rewards, infos
