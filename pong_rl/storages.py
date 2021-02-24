@@ -39,17 +39,17 @@ class EpisodeStorage:
         """ Initialize storage with MultiLists for each episode result. """
         self.num_environments = num_environments
         self.observations = MultiList(num_environments)
+        self.actions = MultiList(num_environments)
         self.rewards = MultiList(num_environments)
-        self.dones = MultiList(num_environments)
         self.infos = MultiList(num_environments)
 
     def add(self, observations, rewards, dones, infos):
         """ Append one episode results into storage. """
         self.observations.append(observations)
+        self.actions.append(rewards)
         self.rewards.append(rewards)
-        self.dones.append(dones)
         self.infos.append(infos)
 
     def get(self):
         """ Get all stored episode results as flat sequences. """
-        return self.observations.flat(), self.rewards.flat(), self.dones.flat(), self.infos.flat()
+        return self.observations.flat(), self.actions.flat(), self.rewards.flat(), self.infos.flat()
