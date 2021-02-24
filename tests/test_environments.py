@@ -57,7 +57,6 @@ class AbstractPongEnvironmentCase(abc.ABC):
             processed_rewards = self.env._process_episode_rewards(rewards, gamma)
             np.testing.assert_array_almost_equal(processed_rewards, target_rewards)
 
-
     def test_environment_output(self):
         """ Play one episode with RandomAgent and test that env output is not empty. """
         observations, actions, rewards, score = self.env.play_episode(self.agent)
@@ -69,6 +68,14 @@ class AbstractPongEnvironmentCase(abc.ABC):
         self.assertEqual(observations_num, rewards_num)
         self.assertGreater(observations_num, 0)
         self.assertNotEqual(score, 0)
+
+    def test_environment_rewards(self):
+        """ Play episode and test environment rewards output. Rewards should be ordered. """
+        _, _, rewards, _ = self.env.play_episode(self.agent)
+
+        for prev, next in zip(rewards, rewards[1:]):
+            if (prev * next) > 0 and abs(prev) != 1.0:
+                self.assertGreater(abs(next), abs(prev))
 
 
 class PongEnvironmentCase(AbstractPongEnvironmentCase, unittest.TestCase):
