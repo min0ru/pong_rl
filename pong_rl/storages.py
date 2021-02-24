@@ -43,10 +43,10 @@ class EpisodeStorage:
         self.rewards = MultiList(num_environments)
         self.infos = MultiList(num_environments)
 
-    def add(self, observations, rewards, dones, infos):
+    def add(self, observations, actions, rewards, infos):
         """ Append one episode results into storage. """
         self.observations.append(observations)
-        self.actions.append(rewards)
+        self.actions.append(actions)
         self.rewards.append(rewards)
         self.infos.append(infos)
 
