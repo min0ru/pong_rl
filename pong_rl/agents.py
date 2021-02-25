@@ -65,9 +65,14 @@ class PongAgentTF(BasePongAgent):
         super().__init__()
 
         self._model = keras.Sequential([
-            keras.Input(shape=self.INPUT_SHAPE),
+            keras.Input(shape=(self.INPUT_SHAPE + (1, ))),
+            keras.layers.Conv2D(32, 4),
+            keras.layers.MaxPool2D(4),
+            keras.layers.Conv2D(16, 4),
+            keras.layers.MaxPool2D(2),
             keras.layers.Flatten(),
             keras.layers.Dense(64, activation='relu'),
+            keras.layers.Dense(128, activation='relu'),
             keras.layers.Dense(self.ACTIONS_LEN, activation='softmax')
         ])
         self._model.compile(
@@ -76,14 +81,17 @@ class PongAgentTF(BasePongAgent):
             metrics=['accuracy']
         )
 
+    def _prepare_observations(self, observations):
+        return observations.view().reshape(observations.shape + (1, ))
+
     def _predict_impl(self, observations):
         """ Agent prediction using TensorFlow NN model. """
-        return self._model(observations).numpy()
+        return self._model(self._prepare_observations(observations)).numpy()
 
     def _train_impl(self, observations, actions, rewards, **kwargs):
         """ Training NN model with given observations. """
         return self._model.fit(
-            observations,
+            self._prepare_observations(observations),
             actions,
             sample_weight=rewards,
             **kwargs
