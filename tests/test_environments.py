@@ -67,7 +67,6 @@ class AbstractPongEnvironmentCase(abc.ABC):
         self.assertEqual(observations_num, actions_num)
         self.assertEqual(observations_num, rewards_num)
         self.assertGreater(observations_num, 0)
-        self.assertNotEqual(score, 0)
 
     def test_environment_rewards(self):
         """ Play episode and test environment rewards output. Rewards should be ordered. """
