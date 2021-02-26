@@ -7,7 +7,7 @@ from pong_rl.environments import PongEnvironment, VectorizedPongEnvironment
 from pong_rl.timer import ContextTimer
 
 
-SAVED_MODEL = 'data/model.dat'
+SAVED_MODEL = 'data/convolution_v1/'
 
 
 def renderer(pipe, environment, saved_model):
@@ -22,6 +22,8 @@ def renderer(pipe, environment, saved_model):
     if Path(saved_model).exists():
         agent._model.load_weights(saved_model)
         print('[render_process]: Loaded Weights')
+    else:
+        print('[render_process]: Model loading failed')
 
     print('[render_process]: Starting episodes rendering')
 
@@ -32,17 +34,15 @@ def renderer(pipe, environment, saved_model):
             episode = pipe.recv()
             if Path(saved_model).exists():
                 agent._model.load_weights(saved_model)
-            print(f'[render_process] Received and updated new agent from episode {episode}')
+                print(f'[render_process]: Received and updated new agent from episode {episode}')
+            else:
+                print('[render_process]: Model loading failed')
 
 
 def main():
     pong = VectorizedPongEnvironment(num_environments=128)
     pong_render = PongEnvironment()
-
     saved_model = SAVED_MODEL
-    if Path(saved_model).exists():
-        print('Loading saved model weights')
-        agent_tf._model.load_weights(saved_model)
 
     print('Starting rendering process')
     child_pipe, parent_pipe = Pipe()
@@ -50,6 +50,13 @@ def main():
     render_process.start()
 
     agent_tf = PongAgentTF()
+
+    if Path(saved_model).exists():
+        print('Loading saved model weights')
+        agent_tf._model.load_weights(saved_model)
+    else:
+        print('Cannot find model data in path:', Path(saved_model).absolute())
+
     print(agent_tf.summary)
 
     episode = 0
@@ -76,7 +83,9 @@ def main():
         episode += 1
 
         print('Saving model weights')
-        agent_tf._model.save_weights('data/model.dat')
+        if not Path(saved_model).exists():
+            Path(saved_model).mkdir()
+        agent_tf._model.save_weights(saved_model)
 
         # Updating rendering agent
         print('Updating rendering agent')
