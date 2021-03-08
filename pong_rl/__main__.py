@@ -1,6 +1,6 @@
+import numpy as np
 from multiprocessing import Process, Pipe
 from pathlib import Path
-import pickle
 
 from pong_rl.agents import PongAgentTF, PongAgentRandom
 from pong_rl.environments import PongEnvironment, VectorizedPongEnvironment
@@ -40,6 +40,8 @@ def renderer(pipe, environment, saved_model):
 
 
 def main():
+    np.set_printoptions(precision=3, edgeitems=8, linewidth=120)
+
     pong = VectorizedPongEnvironment(num_environments=128)
     pong_render = PongEnvironment()
     saved_model = SAVED_MODEL
@@ -50,6 +52,8 @@ def main():
     render_process.start()
 
     agent_tf = PongAgentTF()
+    agent_rnd = PongAgentRandom()
+    agent = agent_tf
 
     if Path(saved_model).exists():
         print('Loading saved model weights')
@@ -64,8 +68,19 @@ def main():
     while should_train:
         print(f"Starting [{episode}] episode")
         with ContextTimer("Episode Timer"):
+            # if (episode + 1) % 2 == 0:
+            #     agent = agent_rnd
+            #     print('Switching to *random agent* for current episode!')
+            # else:
+            #     agent = agent_tf
             ep_observations, ep_actions, ep_rewards, ep_score = \
-                pong.play_episode(agent_tf, render=False)
+                pong.play_episode(agent, render=False)
+
+        # print('Filtering only positive rewards')
+        # positive = ep_rewards > 0
+        # ep_observations = ep_observations[positive]
+        # ep_actions = ep_actions[positive]
+        # ep_rewards = ep_rewards[positive]
 
         print(f'Episode [{episode}] observations number: {len(ep_observations)}')
         print(f'Episode [{episode}] score: {ep_score}')
@@ -73,14 +88,16 @@ def main():
         print('Actions:\n', ep_actions)
         print('Rewards:\n', ep_rewards)
 
-        with ContextTimer("Training Timer"):
-            agent_tf.train(
-                ep_observations,
-                ep_actions,
-                ep_rewards,
-                batch_size=2048,
-            )
-        episode += 1
+        if len(ep_observations) > 0:
+            with ContextTimer("Training Timer"):
+                agent_tf.train(
+                    ep_observations,
+                    ep_actions,
+                    ep_rewards,
+                    batch_size=1024,
+                )
+        else:
+            print('No training data available, skip training')
 
         print('Saving model weights')
         if not Path(saved_model).exists():
@@ -91,6 +108,7 @@ def main():
         print('Updating rendering agent')
         parent_pipe.send(episode)
 
+        episode += 1
 
     render_process.join()
 
