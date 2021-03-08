@@ -66,17 +66,24 @@ class PongAgentTF(BasePongAgent):
 
         self._model = keras.Sequential([
             keras.Input(shape=(self.INPUT_SHAPE + (1, ))),
-            keras.layers.Conv2D(32, 4),
+            keras.layers.Conv2D(8, 8),
             keras.layers.MaxPool2D(4),
             keras.layers.Conv2D(16, 4),
             keras.layers.MaxPool2D(2),
+            keras.layers.Conv2D(4, 2),
+            keras.layers.MaxPool2D(2),
             keras.layers.Flatten(),
-            keras.layers.Dense(64, activation='relu'),
             keras.layers.Dense(128, activation='relu'),
+            keras.layers.Dropout(0.3),
+            keras.layers.Dense(256, activation='relu'),
+            keras.layers.Dropout(0.3),
+            keras.layers.Dense(32, activation='relu'),
+            keras.layers.Dropout(0.1),
             keras.layers.Dense(self.ACTIONS_LEN, activation='softmax')
         ])
         self._model.compile(
-            optimizer=keras.optimizers.SGD(learning_rate=1e-6),
+            # optimizer=keras.optimizers.SGD(learning_rate=1e-4),
+            optimizer=keras.optimizers.Adam(learning_rate=1e-4),
             loss=keras.losses.CategoricalCrossentropy(),
             metrics=['accuracy']
         )
