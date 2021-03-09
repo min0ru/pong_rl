@@ -111,7 +111,7 @@ class VectorizedPongEnvironment(BasePongEnvironment):
     def play_episode(self, agent, render=False):
         """ Play episode using agent and return observations, actions, rewards. """
         results = EpisodeStorage(self.num_environments)
-        score = 0
+        score = np.zeros(self.num_environments)
         environments_finished_episodes = 0
 
         observations = self._env.reset()
@@ -128,7 +128,7 @@ class VectorizedPongEnvironment(BasePongEnvironment):
             # Make a step and save results to vectorized storage
             observations, rewards, episodes_finished, infos = self._env.step(action)
             results.add(processed_observations, action_onehot, rewards, infos)
-            score += rewards
+            score[rewards >= 1] += 1.0
             environments_finished_episodes += np.sum(episodes_finished)
 
         observations, actions, rewards, infos = results.get()
