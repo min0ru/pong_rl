@@ -2,6 +2,7 @@ import abc
 import unittest
 
 import numpy as np
+from scipy.special import softmax
 
 from pong_rl.agents import PongAgentRandom
 from pong_rl.environments import PongEnvironment, VectorizedPongEnvironment
@@ -75,6 +76,29 @@ class AbstractPongEnvironmentCase(abc.ABC):
         for prev, next in zip(rewards, rewards[1:]):
             if (prev * next) > 0 and abs(prev) != 1.0:
                 self.assertGreater(abs(next), abs(prev))
+
+    def test_choose_probable_actions(self):
+        """ Test environment action sampling method.
+
+            Action sampler should return action from environment action space and onehot vector
+            with selected action positional index.
+        """
+        num_probabilities = 10
+        num_actions = len(self.env.action_values)
+        probabilities = softmax(np.random.randn(num_probabilities, num_actions), axis=1)
+        actions, onehots = self.env._choose_probable_actions(probabilities)
+
+        # Check that for all input values there is corresponding actions and onehots.
+        self.assertEqual(len(actions), len(probabilities))
+        self.assertEqual(len(onehots), len(probabilities))
+
+        # Check all selected actions are valid values from env action space.
+        for action in actions:
+            self.assertTrue(action in self.env.action_values)
+
+        # Check that all onehots is summed to 1.
+        for onehot in onehots:
+            self.assertEqual(np.sum(onehot), 1)
 
 
 class PongEnvironmentCase(AbstractPongEnvironmentCase, unittest.TestCase):
