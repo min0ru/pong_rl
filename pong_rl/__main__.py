@@ -40,7 +40,7 @@ def renderer(pipe, environment, saved_model):
 
 
 def main():
-    np.set_printoptions(precision=3, edgeitems=8, linewidth=120)
+    np.set_printoptions(precision=4, floatmode='maxprec', edgeitems=8, linewidth=120)
 
     pong = VectorizedPongEnvironment(num_environments=128)
     pong_render = PongEnvironment()
