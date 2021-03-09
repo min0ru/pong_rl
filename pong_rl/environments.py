@@ -94,7 +94,8 @@ class PongEnvironment(BasePongEnvironment):
         output_observations = np.array(output_observations)
         actions = np.array(actions)
         processed_rewards = self._process_episode_rewards(rewards)
-        score = sum(rewards)
+        rewards = np.array(rewards)
+        score = np.sum(rewards[rewards >= 1.0])
         return output_observations, actions, processed_rewards, score
 
 
