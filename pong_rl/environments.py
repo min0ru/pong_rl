@@ -12,7 +12,7 @@ class BasePongEnvironment(abc.ABC):
     OBSERVATION_SHAPE = (80, 80)
 
     def __init__(self):
-        self.action_values = [action.value for action in PongAction]
+        self.action_values = np.array([action.value for action in PongAction])
 
     def _process_observations(self, observations):
         """ Extract area of interest 160x160 with down sampling and converting to b/w colors. """
@@ -23,8 +23,16 @@ class BasePongEnvironment(abc.ABC):
         return images
 
     def _choose_probable_actions(self, probabilities):
-        """ Choose available action """
-        return [np.random.choice(self.action_values, p=p) for p in probabilities]
+        """ Sample (random choice) environment actions using given predicted probabilities.
+
+            Return selected action and onehot vector with action index.
+        """
+        onehots = np.eye(len(self.action_values))
+        indexes = np.arange(len(self.action_values))
+        samples = [np.random.choice(indexes, p=p) for p in probabilities]
+        actions = self.action_values[samples]
+        action_onehots = onehots[samples]
+        return actions, action_onehots
 
     @staticmethod
     def _process_episode_rewards(rewards, gamma=0.99):
@@ -74,8 +82,9 @@ class PongEnvironment(BasePongEnvironment):
 
             output_observations.append(observations[0])
             action_probabilities = agent.predict(observations)
-            actions.append(action_probabilities[0])
-            action = self._choose_probable_actions(action_probabilities)
+            # actions.append(action_probabilities[0])
+            action, onehot = self._choose_probable_actions(action_probabilities)
+            actions.append(onehot)
 
             observation, reward, episode_finished, info = self._env.step(action)
 
@@ -111,11 +120,11 @@ class VectorizedPongEnvironment(BasePongEnvironment):
 
             # Predict actions using agent
             action_probabilities = agent.predict(processed_observations)
-            action = self._choose_probable_actions(action_probabilities)
+            action, action_onehot = self._choose_probable_actions(action_probabilities)
 
             # Make a step and save results to vectorized storage
             observations, rewards, episodes_finished, infos = self._env.step(action)
-            results.add(processed_observations, action_probabilities, rewards, infos)
+            results.add(processed_observations, action_onehot, rewards, infos)
             score += rewards
             environments_finished_episodes += np.sum(episodes_finished)
 
