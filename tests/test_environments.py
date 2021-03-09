@@ -63,6 +63,10 @@ class AbstractPongEnvironmentCase(abc.ABC):
         actions_num = len(actions)
         rewards_num = len(rewards)
 
+        # Pong score sum should be equal to a sum of rewards equal to 1.0
+        positive_rewards = np.sum(rewards[rewards == 1.0])
+        self.assertEqual(np.sum(score), positive_rewards)
+
         self.assertEqual(observations_num, actions_num)
         self.assertEqual(observations_num, rewards_num)
         self.assertGreater(observations_num, 0)
