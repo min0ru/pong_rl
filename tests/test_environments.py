@@ -75,9 +75,9 @@ class AbstractPongEnvironmentCase(abc.ABC):
         """ Play episode and test environment rewards output. Rewards should be ordered. """
         _, _, rewards, _ = self.env.play_episode(self.agent)
 
-        for prev, next in zip(rewards, rewards[1:]):
-            if (prev * next) > 0 and abs(prev) != 1.0:
-                self.assertGreater(abs(next), abs(prev))
+        for p, n in zip(rewards, rewards[1:]):
+            if (p * n) > 0 and abs(p) != 1.0:
+                self.assertGreater(abs(n), abs(p))
 
     def test_choose_probable_actions(self):
         """Test environment action sampling method.
