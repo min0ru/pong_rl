@@ -1,6 +1,6 @@
 import abc
-import numpy as np
 
+import numpy as np
 from scipy.special import softmax
 from tensorflow import keras
 
@@ -9,6 +9,7 @@ from .actions import PongAction
 
 class BasePongAgent(abc.ABC):
     """ Base Abstract class for trainable Pong Agent. """
+
     INPUT_SHAPE = (80, 80)  # Processed input shape
     ACTIONS_LEN = len(PongAction)
 
@@ -54,7 +55,7 @@ class PongAgentRandom(BasePongAgent):
     @property
     def summary(self):
         """ Agent description. """
-        return 'RandomAgent'
+        return "RandomAgent"
 
 
 class PongAgentTF(BasePongAgent):
@@ -64,32 +65,34 @@ class PongAgentTF(BasePongAgent):
         """ Initialize agent by creating TF model. """
         super().__init__()
 
-        self._model = keras.Sequential([
-            keras.Input(shape=(self.INPUT_SHAPE + (1, ))),
-            keras.layers.Conv2D(8, 8),
-            keras.layers.MaxPool2D(4),
-            keras.layers.Conv2D(16, 4),
-            keras.layers.MaxPool2D(2),
-            keras.layers.Conv2D(4, 2),
-            keras.layers.MaxPool2D(2),
-            keras.layers.Flatten(),
-            keras.layers.Dense(128, activation='relu'),
-            keras.layers.Dropout(0.3),
-            keras.layers.Dense(256, activation='relu'),
-            keras.layers.Dropout(0.3),
-            keras.layers.Dense(32, activation='relu'),
-            keras.layers.Dropout(0.1),
-            keras.layers.Dense(self.ACTIONS_LEN, activation='softmax')
-        ])
+        self._model = keras.Sequential(
+            [
+                keras.Input(shape=(self.INPUT_SHAPE + (1,))),
+                keras.layers.Conv2D(8, 8),
+                keras.layers.MaxPool2D(4),
+                keras.layers.Conv2D(16, 4),
+                keras.layers.MaxPool2D(2),
+                keras.layers.Conv2D(4, 2),
+                keras.layers.MaxPool2D(2),
+                keras.layers.Flatten(),
+                keras.layers.Dense(128, activation="relu"),
+                keras.layers.Dropout(0.3),
+                keras.layers.Dense(256, activation="relu"),
+                keras.layers.Dropout(0.3),
+                keras.layers.Dense(32, activation="relu"),
+                keras.layers.Dropout(0.1),
+                keras.layers.Dense(self.ACTIONS_LEN, activation="softmax"),
+            ]
+        )
         self._model.compile(
             # optimizer=keras.optimizers.SGD(learning_rate=1e-4),
             optimizer=keras.optimizers.Adam(learning_rate=1e-4),
             loss=keras.losses.CategoricalCrossentropy(),
-            metrics=['accuracy']
+            metrics=["accuracy"],
         )
 
     def _prepare_observations(self, observations):
-        return observations.view().reshape(observations.shape + (1, ))
+        return observations.view().reshape(observations.shape + (1,))
 
     def _predict_impl(self, observations):
         """ Agent prediction using TensorFlow NN model. """
@@ -98,10 +101,7 @@ class PongAgentTF(BasePongAgent):
     def _train_impl(self, observations, actions, rewards, **kwargs):
         """ Training NN model with given observations. """
         return self._model.fit(
-            self._prepare_observations(observations),
-            actions,
-            sample_weight=rewards,
-            **kwargs
+            self._prepare_observations(observations), actions, sample_weight=rewards, **kwargs
         )
 
     @property

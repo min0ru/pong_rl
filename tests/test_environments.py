@@ -14,7 +14,7 @@ class MockPongAgent(PongAgentRandom):
     @property
     def summary(self):
         """ Agent description. """
-        return 'RandomPongAgent as Mock Agent'
+        return "RandomPongAgent as Mock Agent"
 
 
 class AbstractPongEnvironmentCase(abc.ABC):
@@ -30,26 +30,24 @@ class AbstractPongEnvironmentCase(abc.ABC):
         """ Test episode rewards smoothing method for Pong. """
         gamma = 0.99
         testing_rewards = [
-            (
-                [0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0]
-            ),
-            (
-                [1, 0, 0, 0, 0],
-                [1.0, 0, 0, 0, 0]
-            ),
-            (
-                [0, 0, 0, 0, -1],
-                [-0.96059601, -0.970299, -0.9801, -0.99, -1.]
-            ),
-            (
-                [0, 0, 0, 0, 1],
-                [0.96059601, 0.970299, 0.9801, 0.99, 1.]
-            ),
+            ([0, 0, 0, 0, 0], [0, 0, 0, 0, 0]),
+            ([1, 0, 0, 0, 0], [1.0, 0, 0, 0, 0]),
+            ([0, 0, 0, 0, -1], [-0.96059601, -0.970299, -0.9801, -0.99, -1.0]),
+            ([0, 0, 0, 0, 1], [0.96059601, 0.970299, 0.9801, 0.99, 1.0]),
             (
                 [0, 0, 0, 0, 1, 0, 0, 0, 0, -1],
-                [0.96059601, 0.970299, 0.9801, 0.99, 1.,
-                 -0.96059601, -0.970299, -0.9801, -0.99, -1.]
+                [
+                    0.96059601,
+                    0.970299,
+                    0.9801,
+                    0.99,
+                    1.0,
+                    -0.96059601,
+                    -0.970299,
+                    -0.9801,
+                    -0.99,
+                    -1.0,
+                ],
             ),
         ]
 
@@ -78,10 +76,10 @@ class AbstractPongEnvironmentCase(abc.ABC):
                 self.assertGreater(abs(next), abs(prev))
 
     def test_choose_probable_actions(self):
-        """ Test environment action sampling method.
+        """Test environment action sampling method.
 
-            Action sampler should return action from environment action space and onehot vector
-            with selected action positional index.
+        Action sampler should return action from environment action space and onehot vector
+        with selected action positional index.
         """
         num_probabilities = 10
         num_actions = len(self.env.action_values)
@@ -111,5 +109,5 @@ class VectorizedPongEnvironmentCase(AbstractPongEnvironmentCase, unittest.TestCa
     AGENT = MockPongAgent
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

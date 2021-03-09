@@ -1,4 +1,5 @@
 import abc
+
 import gym
 import numpy as np
 
@@ -8,7 +9,8 @@ from .storages import EpisodeStorage
 
 class BasePongEnvironment(abc.ABC):
     """ Base Class for Pong Environments. """
-    ENV_NAME = 'Pong-v4'
+
+    ENV_NAME = "Pong-v4"
     OBSERVATION_SHAPE = (80, 80)
 
     def __init__(self):
@@ -23,9 +25,9 @@ class BasePongEnvironment(abc.ABC):
         return images
 
     def _choose_probable_actions(self, probabilities):
-        """ Sample (random choice) environment actions using given predicted probabilities.
+        """Sample (random choice) environment actions using given predicted probabilities.
 
-            Return selected action and onehot vector with action index.
+        Return selected action and onehot vector with action index.
         """
         onehots = np.eye(len(self.action_values))
         indexes = np.arange(len(self.action_values))

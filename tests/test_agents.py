@@ -1,9 +1,10 @@
 import abc
-import numpy as np
 import unittest
 
-from pong_rl.environments import BasePongEnvironment
+import numpy as np
+
 from pong_rl.agents import PongAgentRandom, PongAgentTF
+from pong_rl.environments import BasePongEnvironment
 
 
 class MockPongEnvironment(BasePongEnvironment):
@@ -12,7 +13,7 @@ class MockPongEnvironment(BasePongEnvironment):
 
     def play_episode(self, agent, render=False):
         num_frames = np.random.randint(self.MIN_FRAMES, self.MAX_FRAMES)
-        observation_size = (num_frames, ) + self.OBSERVATION_SHAPE
+        observation_size = (num_frames,) + self.OBSERVATION_SHAPE
         observations = np.random.randint(255, size=observation_size)
         actions = agent.predict(observations)
         rewards = np.random.randn(num_frames) / 4.0
@@ -22,6 +23,7 @@ class MockPongEnvironment(BasePongEnvironment):
 
 class AbstractAgentCase(abc.ABC):
     """ ABC class for agents training. """
+
     ENV = None
     AGENT = None
 
@@ -51,12 +53,14 @@ class AbstractAgentCase(abc.ABC):
 
 class RandomAgentCase(AbstractAgentCase, unittest.TestCase):
     """ Test random agent. """
+
     ENV = MockPongEnvironment
     AGENT = PongAgentRandom
 
 
 class TFAgentCase(AbstractAgentCase, unittest.TestCase):
     """ Test Tensorflow agent. """
+
     ENV = MockPongEnvironment
     AGENT = PongAgentTF
 
@@ -76,7 +80,7 @@ class TFAgentCase(AbstractAgentCase, unittest.TestCase):
         # Check that weights are not changed before model training.
         self.assertTrue(
             self._weights_equal(weights_before_train, model.get_weights()),
-            'Model was not trained yet. Saved and actual weights should be equal.'
+            "Model was not trained yet. Saved and actual weights should be equal.",
         )
 
         # # Play episode, train agent on episode observations
@@ -86,9 +90,9 @@ class TFAgentCase(AbstractAgentCase, unittest.TestCase):
         weights_after_train = model.get_weights()
         self.assertFalse(
             self._weights_equal(weights_before_train, weights_after_train),
-            'Model weights should change after agent training.'
+            "Model weights should change after agent training.",
         )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -1,8 +1,9 @@
-from itertools import groupby
-import numpy as np
 import unittest
+from itertools import groupby
 
-from pong_rl.storages import MultiList, EpisodeStorage
+import numpy as np
+
+from pong_rl.storages import EpisodeStorage, MultiList
 
 
 class MultiListCase(unittest.TestCase):
@@ -53,7 +54,7 @@ class EpisodeStorageCase(unittest.TestCase):
                 observations = np.random.randint(256, size=(num_environments, 80, 80))
                 actions = np.random.randn(num_environments, 3)
                 rewards = np.random.randn(num_environments)
-                infos = [{'empty': True}] * num_environments
+                infos = [{"empty": True}] * num_environments
 
                 storage.add(observations, actions, rewards, infos)
             # Retrieve episodes data from storage
@@ -83,5 +84,5 @@ class EpisodeStorageCase(unittest.TestCase):
         self.assertListEqual(infos, [11, 11, 11, 12, 12, 12, 13, 13, 13])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

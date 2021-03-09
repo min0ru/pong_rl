@@ -11,4 +11,4 @@ class ContextTimer:
     def __exit__(self, *args, **kwargs):
         self.end_time = time.time()
         self.total_time = self.end_time - self.start_time
-        print(f'[{self.name}] seconds: {self.total_time}')
+        print(f"[{self.name}] seconds: {self.total_time}")
