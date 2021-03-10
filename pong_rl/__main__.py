@@ -127,12 +127,13 @@ def main():
 
         if len(ep_observations) > 0:
             with ContextTimer("Training Timer", log):
-                agent_tf.train(
+                train_metrics = agent_tf.train(
                     ep_observations,
                     ep_actions,
                     ep_rewards,
                     batch_size=1024,
                 )
+                log.info(f"Episode {episode} train metrics: {train_metrics.history}")
         else:
             log.info("No training data available, skip training")
 
