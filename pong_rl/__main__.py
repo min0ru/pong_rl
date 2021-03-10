@@ -1,5 +1,6 @@
 from multiprocessing import Pipe, Process
 from pathlib import Path
+from operator import itemgetter
 
 import numpy as np
 
@@ -7,8 +8,7 @@ from pong_rl.agents import PongAgentRandom, PongAgentTF
 from pong_rl.environments import PongEnvironment, VectorizedPongEnvironment
 from pong_rl.timer import ContextTimer
 
-
-SAVED_MODEL = 'data/convolution_v1/'
+SAVED_MODEL = "data/convolution_v1/"
 
 
 def renderer(pipe, environment, saved_model):
@@ -41,9 +41,9 @@ def renderer(pipe, environment, saved_model):
 
 
 def main():
-    np.set_printoptions(precision=4, floatmode="maxprec", edgeitems=8, linewidth=120)
+    np.set_printoptions(precision=4, floatmode="maxprec", edgeitems=16, linewidth=120)
 
-    pong = VectorizedPongEnvironment(num_environments=128)
+    pong = VectorizedPongEnvironment(num_environments=100)
     pong_render = PongEnvironment()
     saved_model = SAVED_MODEL
 
@@ -85,9 +85,15 @@ def main():
         # ep_rewards = ep_rewards[positive]
 
         print(f"Episode [{episode}] observations number: {len(ep_observations)}")
-        print(f"Episode [{episode}] score: {ep_score}")
+        print(f"Episode [{episode}] score: {ep_score.astype(np.int)}")
+        print(f"Episode [{episode}] average score: {np.average(ep_score)}")
+        print(f"Episode [{episode}] max score: {np.max(ep_score)}")
 
-        print("Actions:\n", ep_actions)
+        # print("Actions:\n", ep_actions)
+        unique_actions, actions_num = np.unique(ep_actions, axis=0, return_counts=True)
+        unique_actions = [list(a) for a in list(unique_actions.astype(np.int))]
+        actions_stats = sorted(zip(unique_actions, actions_num), key=itemgetter(0))
+        print("Actions statistics:", actions_stats)
         print("Rewards:\n", ep_rewards)
 
         if len(ep_observations) > 0:
