@@ -12,7 +12,9 @@ from pong_rl.timer import ContextTimer
 
 MODEL_NAME = "convolution_v1"
 MODEL_FILE = f"{MODEL_NAME}.h5"
+EPISODE_FILE = f"{MODEL_NAME}.episode"
 SAVED_MODEL = Path("data", MODEL_FILE)
+SAVED_EPISODE = Path("data", EPISODE_FILE)
 
 
 def get_logger(name, level=logging.INFO):
@@ -67,13 +69,14 @@ def renderer(pipe, environment, saved_model):
 
 
 def main():
-    np.set_printoptions(precision=4, floatmode="maxprec", edgeitems=16, linewidth=120)
+    np.set_printoptions(precision=4, floatmode="maxprec", edgeitems=16, linewidth=1200)
 
     log = get_logger(MODEL_NAME, logging.INFO)
 
     pong = VectorizedPongEnvironment(num_environments=100)
     pong_render = PongEnvironment()
     saved_model = SAVED_MODEL
+    saved_episode = SAVED_EPISODE
 
     log.info("Starting rendering process")
     child_pipe, parent_pipe = Pipe()
@@ -92,7 +95,11 @@ def main():
 
     agent_tf.summary
 
-    episode = 0
+    if saved_episode.exists():
+        episode = int(saved_episode.read_text())
+    else:
+        episode = 0
+
     should_train = True
     while should_train:
         log.info(f"Starting [{episode}] episode")
@@ -139,6 +146,7 @@ def main():
 
         log.info("Saving model weights")
         agent_tf._model.save_weights(saved_model)
+        saved_episode.write_text(str(episode))
 
         # Updating rendering agent
         log.info("Updating rendering agent")
