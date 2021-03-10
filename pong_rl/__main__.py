@@ -1,6 +1,6 @@
 from multiprocessing import Pipe, Process
-from pathlib import Path
 from operator import itemgetter
+from pathlib import Path
 
 import numpy as np
 
@@ -8,7 +8,9 @@ from pong_rl.agents import PongAgentRandom, PongAgentTF
 from pong_rl.environments import PongEnvironment, VectorizedPongEnvironment
 from pong_rl.timer import ContextTimer
 
-SAVED_MODEL = "data/convolution_v1/"
+MODEL_NAME = "convolution_v1"
+MODEL_FILE = f"{MODEL_NAME}.h5"
+SAVED_MODEL = Path("data", MODEL_FILE)
 
 
 def renderer(pipe, environment, saved_model):
@@ -20,7 +22,7 @@ def renderer(pipe, environment, saved_model):
     episode = pipe.recv()
     print("[render_process]: Received agent update signal")
 
-    if Path(saved_model).exists():
+    if saved_model.exists():
         agent._model.load_weights(saved_model)
         print("[render_process]: Loaded Weights")
     else:
@@ -33,7 +35,7 @@ def renderer(pipe, environment, saved_model):
         environment.play_episode(agent, render=True)
         if pipe.poll():
             episode = pipe.recv()
-            if Path(saved_model).exists():
+            if saved_model.exists():
                 agent._model.load_weights(saved_model)
                 print(f"[render_process]: Received and updated new agent from episode {episode}")
             else:
@@ -56,11 +58,11 @@ def main():
     agent_rnd = PongAgentRandom()
     agent = agent_tf
 
-    if Path(saved_model).exists():
+    if saved_model.exists():
         print("Loading saved model weights")
         agent_tf._model.load_weights(saved_model)
     else:
-        print("Cannot find model data in path:", Path(saved_model).absolute())
+        print("Cannot find model data in path:", saved_model.absolute())
 
     print(agent_tf.summary)
 
@@ -108,8 +110,6 @@ def main():
             print("No training data available, skip training")
 
         print("Saving model weights")
-        if not Path(saved_model).exists():
-            Path(saved_model).mkdir()
         agent_tf._model.save_weights(saved_model)
 
         # Updating rendering agent
