@@ -1,3 +1,5 @@
+import logging
+import sys
 from multiprocessing import Pipe, Process
 from operator import itemgetter
 from pathlib import Path
@@ -11,6 +13,28 @@ from pong_rl.timer import ContextTimer
 MODEL_NAME = "convolution_v1"
 MODEL_FILE = f"{MODEL_NAME}.h5"
 SAVED_MODEL = Path("data", MODEL_FILE)
+
+
+def get_logger(name, level=logging.INFO):
+    """ Create logger for main process. """
+    logger = logging.getLogger(name)
+    log_format = "[%(asctime)s] %(message)s"
+    date_format = "%d.%m.%Y %H:%M:%S"
+    formatter = logging.Formatter(log_format, date_format)
+
+    file_handler = logging.FileHandler(Path("log", name))
+    file_handler.setFormatter(formatter)
+    file_handler.setLevel(level)
+    logger.addHandler(file_handler)
+
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setFormatter(formatter)
+    console_handler.setLevel(level)
+    logger.addHandler(console_handler)
+
+    logger.setLevel(level)
+
+    return logger
 
 
 def renderer(pipe, environment, saved_model):
@@ -45,11 +69,13 @@ def renderer(pipe, environment, saved_model):
 def main():
     np.set_printoptions(precision=4, floatmode="maxprec", edgeitems=16, linewidth=120)
 
+    log = get_logger(MODEL_NAME, logging.INFO)
+
     pong = VectorizedPongEnvironment(num_environments=100)
     pong_render = PongEnvironment()
     saved_model = SAVED_MODEL
 
-    print("Starting rendering process")
+    log.info("Starting rendering process")
     child_pipe, parent_pipe = Pipe()
     render_process = Process(target=renderer, args=(child_pipe, pong_render, saved_model))
     render_process.start()
@@ -59,48 +85,48 @@ def main():
     agent = agent_tf
 
     if saved_model.exists():
-        print("Loading saved model weights")
+        log.info("Loading saved model weights")
         agent_tf._model.load_weights(saved_model)
     else:
-        print("Cannot find model data in path:", saved_model.absolute())
+        log.info(f"Cannot find model data in path: {saved_model.absolute()}")
 
-    print(agent_tf.summary)
+    agent_tf.summary
 
     episode = 0
     should_train = True
     while should_train:
-        print(f"Starting [{episode}] episode")
-        with ContextTimer("Episode Timer"):
+        log.info(f"Starting [{episode}] episode")
+        with ContextTimer("Episode Timer", log):
             # if (episode + 1) % 2 == 0:
             #     agent = agent_rnd
-            #     print('Switching to *random agent* for current episode!')
+            #     log.info("Switching to *random agent* for current episode!")
             # else:
             #     agent = agent_tf
             ep_observations, ep_actions, ep_rewards, ep_score = pong.play_episode(
                 agent, render=False
             )
 
-        # print('Filtering only positive rewards')
+        # log.info("Filtering only positive rewards")
         # positive = ep_rewards > 0
         # ep_observations = ep_observations[positive]
         # ep_actions = ep_actions[positive]
         # ep_rewards = ep_rewards[positive]
 
-        print(f"Episode [{episode}] observations number: {len(ep_observations)}")
-        print(f"Episode [{episode}] score: {ep_score.astype(np.int)}")
-        print(f"Episode [{episode}] average score: {np.average(ep_score)}")
-        print(f"Episode [{episode}] max score: {np.max(ep_score)}")
+        log.info(f"Episode [{episode}] observations number: {len(ep_observations)}")
+        log.info(f"Episode [{episode}] score: {ep_score.astype(np.int)}")
+        log.info(f"Episode [{episode}] average score: {np.average(ep_score)}")
+        log.info(f"Episode [{episode}] max score: {np.max(ep_score)}")
 
-        # print("Actions:\n", ep_actions)
+        # log.info(f"Actions:\n" {ep_actions}")
         unique_actions, actions_num = np.unique(ep_actions, axis=0, return_counts=True)
         unique_actions = [list(a) for a in list(unique_actions.astype(np.int))]
         actions_percent = np.rint(actions_num / np.sum(actions_num) * 100).astype(np.int)
         actions_stats = sorted(zip(unique_actions, actions_num, actions_percent), key=itemgetter(0))
-        print("Actions statistics:", actions_stats)
-        print("Rewards:\n", ep_rewards)
+        log.info(f"Actions statistics: {actions_stats}")
+        log.info(f"Rewards:\n {ep_rewards}")
 
         if len(ep_observations) > 0:
-            with ContextTimer("Training Timer"):
+            with ContextTimer("Training Timer", log):
                 agent_tf.train(
                     ep_observations,
                     ep_actions,
@@ -108,13 +134,13 @@ def main():
                     batch_size=1024,
                 )
         else:
-            print("No training data available, skip training")
+            log.info("No training data available, skip training")
 
-        print("Saving model weights")
+        log.info("Saving model weights")
         agent_tf._model.save_weights(saved_model)
 
         # Updating rendering agent
-        print("Updating rendering agent")
+        log.info("Updating rendering agent")
         parent_pipe.send(episode)
 
         episode += 1
