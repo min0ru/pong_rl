@@ -94,7 +94,8 @@ def main():
         # print("Actions:\n", ep_actions)
         unique_actions, actions_num = np.unique(ep_actions, axis=0, return_counts=True)
         unique_actions = [list(a) for a in list(unique_actions.astype(np.int))]
-        actions_stats = sorted(zip(unique_actions, actions_num), key=itemgetter(0))
+        actions_percent = np.rint(actions_num / np.sum(actions_num) * 100).astype(np.int)
+        actions_stats = sorted(zip(unique_actions, actions_num, actions_percent), key=itemgetter(0))
         print("Actions statistics:", actions_stats)
         print("Rewards:\n", ep_rewards)
 
