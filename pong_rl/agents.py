@@ -78,7 +78,7 @@ class PongAgentTF(BasePongAgent):
                 keras.layers.Dense(128, activation="relu"),
                 keras.layers.Dense(256, activation="relu"),
                 keras.layers.Dense(32, activation="relu"),
-                keras.layers.Dense(self.ACTIONS_LEN,activation="softmax",),
+                keras.layers.Dense(self.ACTIONS_LEN, activation="softmax"),
             ]
         )
         self._model.compile(
