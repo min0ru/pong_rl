@@ -76,19 +76,25 @@ class PongAgentTF(BasePongAgent):
                 keras.layers.MaxPool2D(2),
                 keras.layers.Flatten(),
                 keras.layers.Dense(128, activation="relu"),
-                keras.layers.Dropout(0.3),
                 keras.layers.Dense(256, activation="relu"),
-                keras.layers.Dropout(0.3),
                 keras.layers.Dense(32, activation="relu"),
-                keras.layers.Dropout(0.1),
-                keras.layers.Dense(self.ACTIONS_LEN, activation="softmax"),
+                keras.layers.Dense(self.ACTIONS_LEN,activation="softmax",),
             ]
         )
         self._model.compile(
-            # optimizer=keras.optimizers.SGD(learning_rate=1e-4),
-            optimizer=keras.optimizers.Adam(learning_rate=1e-4),
+            optimizer=keras.optimizers.Adam(learning_rate=1e-6),
             loss=keras.losses.CategoricalCrossentropy(),
-            metrics=["accuracy"],
+            metrics=[
+                keras.metrics.Accuracy(),
+                keras.metrics.CategoricalCrossentropy(),
+                keras.metrics.CategoricalAccuracy(),
+                keras.metrics.CategoricalHinge(),
+                keras.metrics.MeanAbsoluteError(),
+                keras.metrics.MeanSquaredError(),
+                keras.metrics.TruePositives(),
+                keras.metrics.TrueNegatives(),
+                keras.metrics.AUC(),
+            ],
         )
 
     def _prepare_observations(self, observations):
