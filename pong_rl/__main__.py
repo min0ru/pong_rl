@@ -84,7 +84,7 @@ def main():
     render_process.start()
 
     agent_tf = PongAgentTF()
-    agent_rnd = PongAgentRandom()
+    # agent_rnd = PongAgentRandom()
     agent = agent_tf
 
     if saved_model.exists():
@@ -118,6 +118,17 @@ def main():
         # ep_observations = ep_observations[positive]
         # ep_actions = ep_actions[positive]
         # ep_rewards = ep_rewards[positive]
+
+        positive_rewards = ep_rewards >= 0
+        positive_rewards_num = len(ep_rewards[positive_rewards])
+        negative_rewards = ep_rewards < 0
+        negative_rewards_num = len(ep_rewards[negative_rewards])
+        rewards_ratio = negative_rewards_num / positive_rewards_num
+        log.info(f"Episode [{episode}] rewards len positive: {positive_rewards_num}")
+        log.info(f"Episode [{episode}] rewards len negative: {negative_rewards_num}")
+        if positive_rewards_num < negative_rewards_num:
+            log.info(f"Rebalancing rewards with positive/negative ratio is {rewards_ratio}")
+            ep_rewards[positive_rewards] *= rewards_ratio
 
         log.info(f"Episode [{episode}] observations number: {len(ep_observations)}")
         log.info(f"Episode [{episode}] score: {ep_score.astype(np.int)}")
