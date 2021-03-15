@@ -24,7 +24,7 @@ def get_logger(name, level=logging.INFO):
     date_format = "%d.%m.%Y %H:%M:%S"
     formatter = logging.Formatter(log_format, date_format)
 
-    file_handler = logging.FileHandler(Path("log", name))
+    file_handler = logging.FileHandler(Path("log", f"{name}.log"))
     file_handler.setFormatter(formatter)
     file_handler.setLevel(level)
     logger.addHandler(file_handler)
