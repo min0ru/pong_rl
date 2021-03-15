@@ -4,11 +4,11 @@ import unittest
 import numpy as np
 from scipy.special import softmax
 
-from pong_rl.agents import PongAgentRandom
+from pong_rl.agents import AgentRandom
 from pong_rl.environments import PongEnvironment, VectorizedPongEnvironment
 
 
-class MockPongAgent(PongAgentRandom):
+class MockPongAgent(AgentRandom):
     """ Mock Pong Agent that implements random acton choice. """
 
     @property

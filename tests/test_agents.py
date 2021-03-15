@@ -3,7 +3,7 @@ import unittest
 
 import numpy as np
 
-from pong_rl.agents import PongAgentRandom, PongAgentTFConv
+from pong_rl.agents import AgentRandom, AgentKerasConv
 from pong_rl.environments import BasePongEnvironment
 
 
@@ -61,14 +61,14 @@ class RandomAgentCase(AbstractAgentCase, unittest.TestCase):
     """ Test random agent. """
 
     ENV = MockPongEnvironment
-    AGENT = PongAgentRandom
+    AGENT = AgentRandom
 
 
-class TFAgentCase(AbstractAgentCase, unittest.TestCase):
-    """ Test Tensorflow agent. """
+class AgentKerasConvCase(AbstractAgentCase, unittest.TestCase):
+    """ Test Keras Convolutional agent. """
 
     ENV = MockPongEnvironment
-    AGENT = PongAgentTFConv
+    AGENT = AgentKerasConv
 
     @staticmethod
     def _weights_equal(w1, w2):
