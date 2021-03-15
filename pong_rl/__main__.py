@@ -93,7 +93,7 @@ def main():
     else:
         log.info(f"Cannot find model data in path: {saved_model.absolute()}")
 
-    agent_tf.summary
+    log.info(f"Agent summary:\n{agent_tf.summary}")
 
     if saved_episode.exists():
         episode = int(saved_episode.read_text())

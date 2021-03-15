@@ -136,5 +136,6 @@ class PongAgentTFConv(BasePongAgentTF):
     @property
     def summary(self):
         """ Agent summary description. """
-        # TODO FIXME: _model.summary() prints directly to sys.stdout!
-        return self._model.summary()
+        summary_lines = []
+        self._model.summary(print_fn=lambda x: summary_lines.append(x))
+        return "\n".join(summary_lines)
