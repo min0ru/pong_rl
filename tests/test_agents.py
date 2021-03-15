@@ -30,7 +30,7 @@ class AbstractAgentCase(abc.ABC):
     def setUp(self):
         """ Initialize environment and agent. """
         self.env = self.ENV()
-        self.agent = self.AGENT()
+        self.agent = self.AGENT(self.env.actions_len, self.env.observation_shape)
 
     def test_environment_output(self):
         """ Play one episode with RandomAgent and test that env output is not empty. """

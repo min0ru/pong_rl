@@ -24,7 +24,7 @@ class AbstractPongEnvironmentCase(abc.ABC):
     def setUp(self) -> None:
         """ Initialize Environment. """
         self.env = self.ENV()
-        self.agent = self.AGENT()
+        self.agent = self.AGENT(self.env.actions_len, self.env.observation_shape)
 
     def test_actions_len(self):
         """ Environment should return action space length. """
