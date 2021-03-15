@@ -50,6 +50,12 @@ class AbstractAgentCase(abc.ABC):
         self.agent.train(observations, actions, rewards, verbose=False)
         self.assertGreater(self.agent.trainings, 0)
 
+    def test_agent_summary(self):
+        """ Agent should return it's summary description as text. """
+        summary = self.agent.summary
+        self.assertIsInstance(summary, str, "Agent description should be in text (str) format.")
+        self.assertGreater(len(summary), 0, "Agent description should not be empty")
+
 
 class RandomAgentCase(AbstractAgentCase, unittest.TestCase):
     """ Test random agent. """
