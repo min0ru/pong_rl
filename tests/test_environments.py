@@ -34,7 +34,9 @@ class AbstractPongEnvironmentCase(abc.ABC):
     def test_observation_shape(self):
         """ Environment should return processed observations shape. """
         observation_shape = self.env.observation_shape
-        self.assertGreater(observation_shape, 0, "Environment should return observations shape.")
+        self.assertGreater(
+            len(observation_shape), 0, "Environment should return observations shape."
+        )
 
     def test_process_episode_rewards(self):
         """ Test episode rewards smoothing method for Pong. """
