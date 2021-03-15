@@ -3,7 +3,7 @@ import unittest
 
 import numpy as np
 
-from pong_rl.agents import AgentRandom, AgentKerasConv
+from pong_rl.agents import AgentKerasConv, AgentRandom
 from pong_rl.environments import BasePongEnvironment
 
 
