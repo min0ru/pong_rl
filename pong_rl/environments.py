@@ -53,6 +53,16 @@ class BasePongEnvironment(abc.ABC):
         """ Play episode using agent and return observations, actions, rewards, total score. """
         pass
 
+    @property
+    def actions_len(self):
+        """ Return length of the environment possible action space. """
+        return len(self.action_values)
+
+    @property
+    def observation_shape(self):
+        """ Return environment processed observation shape. """
+        return self.OBSERVATION_SHAPE
+
 
 class PongEnvironment(BasePongEnvironment):
     """ Pong Environment Class. Single Threaded. """
