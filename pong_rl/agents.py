@@ -42,7 +42,7 @@ class BaseAgentML(BaseAgent):
 
     def __init__(self, *args, **kwargs):
         """ Agent initialization is model creation. """
-        super().__init__(*args, **kwargs)
+        super().__init__(*args)
         self._model = self._create_model(**kwargs)
 
     def _create_model(self, **kwargs):
