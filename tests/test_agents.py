@@ -3,7 +3,7 @@ import unittest
 
 import numpy as np
 
-from pong_rl.agents import PongAgentRandom, PongAgentTF
+from pong_rl.agents import PongAgentRandom, PongAgentTFConv
 from pong_rl.environments import BasePongEnvironment
 
 
@@ -62,7 +62,7 @@ class TFAgentCase(AbstractAgentCase, unittest.TestCase):
     """ Test Tensorflow agent. """
 
     ENV = MockPongEnvironment
-    AGENT = PongAgentTF
+    AGENT = PongAgentTFConv
 
     @staticmethod
     def _weights_equal(w1, w2):
