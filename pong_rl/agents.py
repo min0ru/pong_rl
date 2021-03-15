@@ -58,14 +58,45 @@ class PongAgentRandom(BasePongAgent):
         return "RandomAgent"
 
 
-class PongAgentTF(BasePongAgent):
+class BasePongAgentTF(BasePongAgent):
+    """ Abstract Base Class for TensorFlow agents. """
+
+    def __init__(self, *args, **kwargs):
+        """ TF agent initialization is model creation. """
+        super().__init__()
+        self._model = self._create_model(*args, **kwargs)
+
+    def _create_model(self, *args, **kwargs):
+        """ Model creation interface method. """
+        self._model = self._create_model_impl(self, *args, **kwargs)
+        return self._model
+
+    @abc.abstractmethod
+    def _create_model_impl(self, *args, **kwargs):
+        """ Method should initialize TF model and return it. """
+        pass
+
+    def _predict_impl(self, observations):
+        """ Agent prediction using TensorFlow NN model. """
+        return self._model(self._prepare_observations(observations)).numpy()
+
+    def _train_impl(self, observations, actions, rewards, **kwargs):
+        """ Training NN model with given observations. """
+        return self._model.fit(
+            self._prepare_observations(observations), actions, sample_weight=rewards, **kwargs
+        )
+
+    def _prepare_observations(self, observations):
+        """ Preprocess observations for prediction or training if needed. """
+        return observations
+
+
+class PongAgentTFConv(BasePongAgentTF):
     """ Pong Agent based on TensorFlow NeuralNetworks. """
 
-    def __init__(self):
-        """ Initialize agent by creating TF model. """
-        super().__init__()
-
-        self._model = keras.Sequential(
+    def _create_model_impl(self, learning_rate=1e-3):
+        """ Creating and compiling TF (Keras) model. """
+        model = keras.Sequential(
             [
                 keras.Input(shape=(self.INPUT_SHAPE + (1,))),
                 keras.layers.Conv2D(8, 8),
@@ -81,8 +112,8 @@ class PongAgentTF(BasePongAgent):
                 keras.layers.Dense(self.ACTIONS_LEN, activation="softmax"),
             ]
         )
-        self._model.compile(
-            optimizer=keras.optimizers.Adam(learning_rate=1e-6),
+        model.compile(
+            optimizer=keras.optimizers.Adam(learning_rate=1e-3),
             loss=keras.losses.CategoricalCrossentropy(),
             metrics=[
                 keras.metrics.Accuracy(),
@@ -96,21 +127,14 @@ class PongAgentTF(BasePongAgent):
                 keras.metrics.AUC(),
             ],
         )
+        return model
 
     def _prepare_observations(self, observations):
+        """ Reshaping observations for convolutional layers. """
         return observations.view().reshape(observations.shape + (1,))
-
-    def _predict_impl(self, observations):
-        """ Agent prediction using TensorFlow NN model. """
-        return self._model(self._prepare_observations(observations)).numpy()
-
-    def _train_impl(self, observations, actions, rewards, **kwargs):
-        """ Training NN model with given observations. """
-        return self._model.fit(
-            self._prepare_observations(observations), actions, sample_weight=rewards, **kwargs
-        )
 
     @property
     def summary(self):
-        """ Agent description. """
+        """ Agent summary description. """
+        # TODO FIXME: _model.summary() prints directly to sys.stdout!
         return self._model.summary()
