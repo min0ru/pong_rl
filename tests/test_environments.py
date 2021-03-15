@@ -26,6 +26,16 @@ class AbstractPongEnvironmentCase(abc.ABC):
         self.env = self.ENV()
         self.agent = self.AGENT()
 
+    def test_actions_len(self):
+        """ Environment should return action space length. """
+        actions_len = self.env.actions_len
+        self.assertGreater(actions_len, 0, "Environment should return actions space length.")
+
+    def test_observation_shape(self):
+        """ Environment should return processed observations shape. """
+        observation_shape = self.env.observation_shape
+        self.assertGreater(observation_shape, 0, "Environment should return observations shape.")
+
     def test_process_episode_rewards(self):
         """ Test episode rewards smoothing method for Pong. """
         gamma = 0.99
