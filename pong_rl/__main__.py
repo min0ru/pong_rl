@@ -6,7 +6,7 @@ from pathlib import Path
 
 import numpy as np
 
-from pong_rl.agents import PongAgentRandom, PongAgentTF
+from pong_rl.agents import AgentKerasConv
 from pong_rl.environments import PongEnvironment, VectorizedPongEnvironment
 from pong_rl.timer import ContextTimer
 
@@ -39,13 +39,13 @@ def get_logger(name, level=logging.INFO):
     return logger
 
 
-def renderer(pipe, environment, saved_model):
+def renderer(pipe, environment, saved_model, agent_class):
     """ Receive actual agent from pipe and render it in provided environment. """
     print("[render_process]: Render process started")
-    agent = PongAgentTF()
+    agent = agent_class(environment.actions_len, environment.observation_shape)
 
     print("[render_process]: Awaiting for new agent data")
-    episode = pipe.recv()
+    _ = pipe.recv()
     print("[render_process]: Received agent update signal")
 
     if saved_model.exists():
@@ -73,27 +73,29 @@ def main():
 
     log = get_logger(MODEL_NAME, logging.INFO)
 
-    pong = VectorizedPongEnvironment(num_environments=100)
+    pong = VectorizedPongEnvironment(num_environments=64)
     pong_render = PongEnvironment()
     saved_model = SAVED_MODEL
     saved_episode = SAVED_EPISODE
 
+    agent_class = AgentKerasConv
+
     log.info("Starting rendering process")
     child_pipe, parent_pipe = Pipe()
-    render_process = Process(target=renderer, args=(child_pipe, pong_render, saved_model))
+    render_process = Process(
+        target=renderer, args=(child_pipe, pong_render, saved_model, agent_class)
+    )
     render_process.start()
 
-    agent_tf = PongAgentTF()
-    # agent_rnd = PongAgentRandom()
-    agent = agent_tf
+    agent = agent_class(pong.actions_len, pong.observation_shape, learning_rate=1e-4)
 
     if saved_model.exists():
         log.info("Loading saved model weights")
-        agent_tf._model.load_weights(saved_model)
+        agent._model.load_weights(saved_model)
     else:
         log.info(f"Cannot find model data in path: {saved_model.absolute()}")
 
-    log.info(f"Agent summary:\n{agent_tf.summary}")
+    log.info(f"Agent summary:\n{agent.summary}")
 
     if saved_episode.exists():
         episode = int(saved_episode.read_text())
@@ -104,20 +106,9 @@ def main():
     while should_train:
         log.info(f"Starting [{episode}] episode")
         with ContextTimer("Episode Timer", log):
-            # if (episode + 1) % 2 == 0:
-            #     agent = agent_rnd
-            #     log.info("Switching to *random agent* for current episode!")
-            # else:
-            #     agent = agent_tf
             ep_observations, ep_actions, ep_rewards, ep_score = pong.play_episode(
                 agent, render=False
             )
-
-        # log.info("Filtering only positive rewards")
-        # positive = ep_rewards > 0
-        # ep_observations = ep_observations[positive]
-        # ep_actions = ep_actions[positive]
-        # ep_rewards = ep_rewards[positive]
 
         positive_rewards = ep_rewards >= 0
         positive_rewards_num = len(ep_rewards[positive_rewards])
@@ -135,7 +126,6 @@ def main():
         log.info(f"Episode [{episode}] average score: {np.average(ep_score)}")
         log.info(f"Episode [{episode}] max score: {np.max(ep_score)}")
 
-        # log.info(f"Actions:\n" {ep_actions}")
         unique_actions, actions_num = np.unique(ep_actions, axis=0, return_counts=True)
         unique_actions = [list(a) for a in list(unique_actions.astype(np.int))]
         actions_percent = np.rint(actions_num / np.sum(actions_num) * 100).astype(np.int)
@@ -145,7 +135,7 @@ def main():
 
         if len(ep_observations) > 0:
             with ContextTimer("Training Timer", log):
-                train_metrics = agent_tf.train(
+                train_metrics = agent.train(
                     ep_observations,
                     ep_actions,
                     ep_rewards,
@@ -156,10 +146,9 @@ def main():
             log.info("No training data available, skip training")
 
         log.info("Saving model weights")
-        agent_tf._model.save_weights(saved_model)
+        agent._model.save_weights(saved_model)
         saved_episode.write_text(str(episode))
 
-        # Updating rendering agent
         log.info("Updating rendering agent")
         parent_pipe.send(episode)
 
