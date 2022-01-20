@@ -94,11 +94,10 @@ class PongEnvironment(BasePongEnvironment):
 
             output_observations.append(observations[0])
             action_probabilities = agent.predict(observations)
-            # actions.append(action_probabilities[0])
             action, onehot = self._choose_probable_actions(action_probabilities)
             actions.append(onehot)
 
-            observation, reward, episode_finished, info = self._env.step(action)
+            observation, reward, episode_finished, info = self._env.step(action[0])
 
             rewards.append(reward)
         output_observations = np.array(output_observations)
