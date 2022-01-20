@@ -10,7 +10,7 @@ from pong_rl.agents import AgentKerasConv
 from pong_rl.environments import PongEnvironment, VectorizedPongEnvironment
 from pong_rl.timer import ContextTimer
 
-MODEL_NAME = "convolution_v1"
+MODEL_NAME = "convolution_v6"
 MODEL_FILE = f"{MODEL_NAME}.h5"
 EPISODE_FILE = f"{MODEL_NAME}.episode"
 SAVED_MODEL = Path("data", MODEL_FILE)
@@ -73,12 +73,24 @@ def main():
 
     log = get_logger(MODEL_NAME, logging.INFO)
 
-    pong = VectorizedPongEnvironment(num_environments=64)
-    pong_render = PongEnvironment()
     saved_model = SAVED_MODEL
     saved_episode = SAVED_EPISODE
 
+    # Training hyperparameters
     agent_class = AgentKerasConv
+    learning_rate = 1e-2
+    positive_feedback_multiplier = 10
+    games_per_episode = 128
+
+    log.info("Training hyperparameters:")
+    log.info(f"agent_class: {agent_class}")
+    log.info(f"learning_rate: {learning_rate}")
+    log.info(f"positive_feedback_multiplier: {positive_feedback_multiplier}")
+    log.info(f"games_per_episode: {games_per_episode}")
+
+    # Environments
+    pong_render = PongEnvironment()
+    pong = VectorizedPongEnvironment(num_environments=games_per_episode)
 
     log.info("Starting rendering process")
     child_pipe, parent_pipe = Pipe()
@@ -87,7 +99,7 @@ def main():
     )
     render_process.start()
 
-    agent = agent_class(pong.actions_len, pong.observation_shape, learning_rate=1e-4)
+    agent = agent_class(pong.actions_len, pong.observation_shape, learning_rate=learning_rate)
 
     if saved_model.exists():
         log.info("Loading saved model weights")
@@ -110,25 +122,29 @@ def main():
                 agent, render=False
             )
 
-        positive_rewards = ep_rewards >= 0
+        # Balancing positive / negative rewards
+        positive_rewards = ep_rewards > 0
         positive_rewards_num = len(ep_rewards[positive_rewards])
-        negative_rewards = ep_rewards < 0
+        negative_rewards = ep_rewards <= 0
         negative_rewards_num = len(ep_rewards[negative_rewards])
-        rewards_ratio = negative_rewards_num / positive_rewards_num
+        try:
+            rewards_ratio = negative_rewards_num / positive_rewards_num
+        except ZeroDivisionError:
+            rewards_ratio = 1
         log.info(f"Episode [{episode}] rewards len positive: {positive_rewards_num}")
         log.info(f"Episode [{episode}] rewards len negative: {negative_rewards_num}")
-        if positive_rewards_num < negative_rewards_num:
-            log.info(f"Rebalancing rewards with positive/negative ratio is {rewards_ratio}")
-            ep_rewards[positive_rewards] *= rewards_ratio
+        log.info(f"Rebalancing rewards with rewards_ratio: {rewards_ratio}")
+        log.info(f"Positive feedback multiplier is: {positive_feedback_multiplier}")
+        ep_rewards[positive_rewards] *= rewards_ratio * positive_feedback_multiplier
 
         log.info(f"Episode [{episode}] observations number: {len(ep_observations)}")
-        log.info(f"Episode [{episode}] score: {ep_score.astype(np.int)}")
+        log.info(f"Episode [{episode}] score: {ep_score.astype(int)}")
         log.info(f"Episode [{episode}] average score: {np.average(ep_score)}")
         log.info(f"Episode [{episode}] max score: {np.max(ep_score)}")
 
         unique_actions, actions_num = np.unique(ep_actions, axis=0, return_counts=True)
-        unique_actions = [list(a) for a in list(unique_actions.astype(np.int))]
-        actions_percent = np.rint(actions_num / np.sum(actions_num) * 100).astype(np.int)
+        unique_actions = [list(a) for a in list(unique_actions.astype(int))]
+        actions_percent = np.rint(actions_num / np.sum(actions_num) * 100).astype(int)
         actions_stats = sorted(zip(unique_actions, actions_num, actions_percent), key=itemgetter(0))
         log.info(f"Actions statistics: {actions_stats}")
         log.info(f"Rewards:\n {ep_rewards}")
