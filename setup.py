@@ -22,8 +22,8 @@ setup(
     author="min0ru",
     author_email="2010min0ru@gmail.com",
     packages=find_packages(where="pong_rl"),
-    python_requires=">=3.6, <4",
-    install_requires=["gym[atari]", "tensorflow==2.4.1", "numpy==1.19.2", "scipy==1.6.0"],
+    python_requires=">=3.9, <4",
+    install_requires=["gym[atari]", "tensorflow>=2.6.2", "numpy>=1.19.2", "scipy>=1.7.1"],
     extras_require={
         "dev": [
             "ipython",
