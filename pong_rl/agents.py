@@ -130,6 +130,15 @@ class AgentKerasConv(BaseAgentML):
         """ Reshaping observations for convolutional layers. """
         return observations.view().reshape(observations.shape + (1,))
 
+    def _train_impl(self, observations, actions, rewards, **kwargs):
+        """ Training ML model with given observations. """
+        return super()._train_impl(
+            observations,
+            actions,
+            rewards,
+            validation_split=0.2,
+        )
+
     @property
     def summary(self):
         """ Agent summary description. """
