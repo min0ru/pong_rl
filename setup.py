@@ -3,6 +3,8 @@ https://packaging.python.org/guides/distributing-packages-using-setuptools/
 https://github.com/pypa/sampleproject
 """
 
+# TODO: Migrate to pyproject single file configuration (poetry)
+
 import pathlib
 
 from setuptools import find_packages, setup
@@ -27,7 +29,9 @@ setup(
         "gym[atari,accept-rom-license]",
         "tensorflow>=2.6.2",
         "numpy>=1.19.2",
-        "scipy>=1.7.1"
+        "scipy>=1.7.1",
+        "matplotlib",
+        "pandas",
     ],
     extras_require={
         "dev": [
