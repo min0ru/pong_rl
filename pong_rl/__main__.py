@@ -10,6 +10,7 @@ from pong_rl.agents import AgentKerasConv
 from pong_rl.environments import PongEnvironment, VectorizedPongEnvironment
 from pong_rl.timer import ContextTimer
 
+# TODO: Set model name/version as parameter
 MODEL_NAME = "convolution_v6"
 MODEL_FILE = f"{MODEL_NAME}.h5"
 EPISODE_FILE = f"{MODEL_NAME}.episode"
@@ -68,6 +69,7 @@ def renderer(pipe, environment, saved_model, agent_class):
                 print("[render_process]: Model loading failed")
 
 
+# TODO: Extract AgentTrainingStrategy class with custom training logic and tests
 def main():
     np.set_printoptions(precision=4, floatmode="maxprec", edgeitems=16, linewidth=1200)
 
@@ -76,11 +78,12 @@ def main():
     saved_model = SAVED_MODEL
     saved_episode = SAVED_EPISODE
 
+    # TODO: Set training parameters as command-line arguments
     # Training hyperparameters
     agent_class = AgentKerasConv
-    learning_rate = 1e-2
-    positive_feedback_multiplier = 10
-    games_per_episode = 128
+    learning_rate = 1e-6
+    positive_feedback_multiplier = 5
+    games_per_episode = 64
 
     log.info("Training hyperparameters:")
     log.info(f"agent_class: {agent_class}")
