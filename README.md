@@ -11,6 +11,12 @@ git clone https://github.com/min0ru/pong_rl
 pip install -e pong_rl
 ```
 
+To install with development requirements (pytest, ipython etc.):
+
+```bash
+pip install -e "pong_rl[dev]"
+```
+
 ## Testing
 
 Some basic tests is provided with project.
