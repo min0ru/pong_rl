@@ -16,6 +16,7 @@ MODEL_FILE = f"{MODEL_NAME}.h5"
 EPISODE_FILE = f"{MODEL_NAME}.episode"
 SAVED_MODEL = Path("data", MODEL_FILE)
 SAVED_EPISODE = Path("data", EPISODE_FILE)
+MAX_OBSERVATIONS = 110000
 
 
 def get_logger(name, level=logging.INFO):
@@ -163,6 +164,14 @@ def main():
                 log.info(f"Episode {episode} train metrics: {train_metrics.history}")
         else:
             log.info("No training data available, skip training")
+
+        if len(ep_observations) > MAX_OBSERVATIONS:
+            games_per_episode -= 1
+            log.info(
+                f"Episode [{episode}] number of observations exceeding {MAX_OBSERVATIONS}, "
+                f"reducing games_per_episode to {games_per_episode} and rebuilding environment."
+            )
+            pong = VectorizedPongEnvironment(num_environments=games_per_episode)
 
         log.info("Saving model weights")
         agent._model.save_weights(saved_model)
