@@ -21,7 +21,7 @@ class BasePongEnvironment(abc.ABC):
         images = observations[:, 34:194, :, :]  # Cut out the area of interest
         images = images[:, ::2, ::2, 1]  # Down sample to 80x80 and single channel
         images[images < 100] = 0
-        images[images > 0] = 255
+        images[images > 0] = 1
         return images
 
     def _choose_probable_actions(self, probabilities):
